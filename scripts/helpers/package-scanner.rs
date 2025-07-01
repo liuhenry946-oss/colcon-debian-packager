@@ -60,14 +60,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for entry in WalkDir::new(&args.path)
         .follow_links(true)
         .into_iter()
+        .filter_entry(|e| {
+            // Skip directories that contain COLCON_IGNORE
+            !(e.path().is_dir() && e.path().join("COLCON_IGNORE").exists())
+        })
         .filter_map(|e| e.ok())
     {
         let path = entry.path();
-        
-        // Skip if COLCON_IGNORE exists
-        if path.is_dir() && path.join("COLCON_IGNORE").exists() {
-            continue;
-        }
         
         // Look for package.xml
         if path.file_name() == Some(std::ffi::OsStr::new("package.xml")) {
