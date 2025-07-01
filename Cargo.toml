@@ -54,6 +54,12 @@ quick-xml = { version = "0.31", features = ["serialize"] }
 # File system
 walkdir = "2.4"
 
+# Time handling
+chrono = { version = "0.4", features = ["serde"] }
+
+# String patterns
+regex = "1.10"
+
 # Testing
 tempfile = "3.8"
 proptest = "1.4"
