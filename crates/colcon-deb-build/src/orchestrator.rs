@@ -13,6 +13,8 @@ use crate::{
     context::{BuildContext, BuildState},
     error::{BuildError, Result},
     executor::{BuildExecutor, ExecutorConfig},
+    graceful_shutdown::{ShutdownGuard, ShutdownManager},
+    recovery::{BuildRecoveryStrategy, RecoveryManager, RetryConfig},
 };
 
 /// Trait for build orchestration
@@ -46,6 +48,12 @@ pub struct ColconDebBuilder {
     executor: Option<BuildExecutor>,
     /// Artifact collector
     artifact_collector: ArtifactCollector,
+    /// Shutdown manager for graceful shutdown
+    shutdown_manager: Arc<ShutdownManager>,
+    /// Recovery manager for retry logic
+    recovery_manager: RecoveryManager,
+    /// Shutdown guard for cleanup
+    _shutdown_guard: Option<ShutdownGuard>,
 }
 
 impl ColconDebBuilder {
@@ -58,16 +66,37 @@ impl ColconDebBuilder {
         let context = BuildContext::new(config.clone());
         let artifact_collector = ArtifactCollector::new(config.output_dir.clone());
 
+        // Create shutdown manager with appropriate timeout
+        let shutdown_manager = Arc::new(ShutdownManager::new(
+            std::time::Duration::from_secs(60), // 1 minute graceful shutdown timeout
+        ));
+
+        // Create recovery manager with retry strategy
+        let recovery_strategy = BuildRecoveryStrategy::Retry; // Could be configurable
+        let retry_config = RetryConfig {
+            max_attempts: 3,
+            initial_delay: std::time::Duration::from_millis(1000),
+            max_delay: std::time::Duration::from_secs(30),
+            multiplier: 2.0,
+            max_elapsed_time: Some(std::time::Duration::from_secs(300)),
+        };
+        let mut recovery_manager = RecoveryManager::new(recovery_strategy, retry_config);
+        recovery_manager.set_shutdown_signal(shutdown_manager.shutdown_signal());
+
         Ok(Self {
             config,
             context,
             docker: Arc::new(docker),
             executor: None,
             artifact_collector,
+            shutdown_manager,
+            recovery_manager,
+            _shutdown_guard: None,
         })
     }
 
     /// Initialize the Docker service
+    #[allow(dead_code)]
     async fn init_docker(&mut self) -> Result<()> {
         info!("Initializing Docker service");
 
@@ -101,7 +130,31 @@ impl ColconDebBuilder {
         if let Some(executor) = &mut self.executor {
             executor.cleanup().await?;
         }
+
+        // Execute graceful shutdown
+        self.shutdown_manager.graceful_shutdown().await?;
+
         Ok(())
+    }
+
+    /// Get the shutdown manager
+    pub fn shutdown_manager(&self) -> Arc<ShutdownManager> {
+        Arc::clone(&self.shutdown_manager)
+    }
+
+    /// Get the recovery manager reference
+    pub fn recovery_manager(&self) -> &RecoveryManager {
+        &self.recovery_manager
+    }
+
+    /// Check if shutdown was requested
+    pub fn is_shutdown_requested(&self) -> bool {
+        self.shutdown_manager.is_shutdown_requested()
+    }
+
+    /// Setup signal handlers for graceful shutdown
+    pub async fn setup_signal_handlers(&self) -> Result<()> {
+        crate::graceful_shutdown::setup_signal_handlers(Arc::clone(&self.shutdown_manager)).await
     }
 }
 
@@ -110,13 +163,34 @@ impl BuildOrchestratorTrait for ColconDebBuilder {
     async fn prepare_environment(&mut self) -> Result<()> {
         info!("Preparing build environment");
 
+        // Check for shutdown before starting
+        if self.is_shutdown_requested() {
+            return Err(BuildError::ShutdownInProgress);
+        }
+
         // Update build state
         self.context.set_state(BuildState::Preparing);
 
-        // Initialize Docker
-        self.init_docker().await?;
+        // Create shutdown guard for this operation
+        self._shutdown_guard = Some(ShutdownGuard::new(
+            Arc::clone(&self.shutdown_manager),
+            "prepare_environment".to_string(),
+        ));
 
-        // Create build executor
+        // Initialize Docker with retry logic
+        let docker = Arc::clone(&self.docker);
+        self.recovery_manager
+            .execute_with_retry("init_docker", || async {
+                // Verify connection by checking if we can list containers
+                docker
+                    .list_containers(false)
+                    .await
+                    .map_err(BuildError::Docker)?;
+                Ok(())
+            })
+            .await?;
+
+        // Create build executor (no retry needed for local operation)
         self.create_executor()?;
 
         // Validate workspace
@@ -127,10 +201,19 @@ impl BuildOrchestratorTrait for ColconDebBuilder {
             )));
         }
 
-        // Create output directory
-        std::fs::create_dir_all(&self.config.output_dir).map_err(|e| {
-            BuildError::environment(format!("Failed to create output directory: {e}"))
-        })?;
+        // Create output directory with retry logic
+        self.recovery_manager
+            .execute_with_retry("create_output_dir", || async {
+                std::fs::create_dir_all(&self.config.output_dir).map_err(|e| {
+                    BuildError::environment(format!("Failed to create output directory: {e}"))
+                })
+            })
+            .await?;
+
+        // Check for shutdown before completing
+        if self.is_shutdown_requested() {
+            return Err(BuildError::ShutdownInProgress);
+        }
 
         info!("Build environment prepared successfully");
         self.context.set_state(BuildState::Ready);
@@ -141,26 +224,49 @@ impl BuildOrchestratorTrait for ColconDebBuilder {
     async fn run_build(&mut self) -> Result<()> {
         info!("Starting build process");
 
+        // Check for shutdown before starting
+        if self.is_shutdown_requested() {
+            return Err(BuildError::ShutdownInProgress);
+        }
+
         // Update build state
         self.context.set_state(BuildState::Building);
 
-        // Get executor
-        let executor = self
-            .executor
-            .as_mut()
-            .ok_or_else(|| BuildError::InvalidConfiguration {
-                reason: "Build executor not initialized".to_string(),
-            })?;
+        // Update shutdown guard for this operation
+        self._shutdown_guard =
+            Some(ShutdownGuard::new(Arc::clone(&self.shutdown_manager), "run_build".to_string()));
 
-        // Run build
-        match executor.execute_build(&mut self.context).await {
+        // Check that executor is initialized
+        if self.executor.is_none() {
+            return Err(BuildError::InvalidConfiguration {
+                reason: "Build executor not initialized".to_string(),
+            });
+        }
+
+        // Run build with basic error handling (retry logic can be added at the package
+        // level)
+        let result = {
+            // Check for shutdown before execution
+            if self.is_shutdown_requested() {
+                return Err(BuildError::ShutdownInProgress);
+            }
+
+            let executor = self.executor.as_mut().unwrap();
+            executor.execute_build(&mut self.context).await
+        };
+
+        match result {
             Ok(()) => {
                 info!("Build completed successfully");
                 self.context.set_state(BuildState::Completed);
                 Ok(())
             }
             Err(e) => {
-                warn!("Build failed: {}", e);
+                if e.is_shutdown() {
+                    info!("Build was cancelled during execution");
+                } else {
+                    warn!("Build failed: {}", e);
+                }
                 self.context.set_state(BuildState::Failed);
                 Err(e)
             }
@@ -170,8 +276,19 @@ impl BuildOrchestratorTrait for ColconDebBuilder {
     async fn collect_artifacts(&mut self) -> Result<Vec<PathBuf>> {
         info!("Collecting build artifacts");
 
+        // Check for shutdown before starting
+        if self.is_shutdown_requested() {
+            return Err(BuildError::ShutdownInProgress);
+        }
+
         // Update build state
         self.context.set_state(BuildState::CollectingArtifacts);
+
+        // Update shutdown guard for this operation
+        self._shutdown_guard = Some(ShutdownGuard::new(
+            Arc::clone(&self.shutdown_manager),
+            "collect_artifacts".to_string(),
+        ));
 
         // Get executor
         let executor = self
@@ -182,10 +299,16 @@ impl BuildOrchestratorTrait for ColconDebBuilder {
             })?;
 
         // Collect artifacts from container
-        let artifacts = self
-            .artifact_collector
-            .collect_from_executor(executor, &self.context)
-            .await?;
+        let artifacts = {
+            // Check for shutdown before collection
+            if self.is_shutdown_requested() {
+                return Err(BuildError::ShutdownInProgress);
+            }
+
+            self.artifact_collector
+                .collect_from_executor(executor, &self.context)
+                .await?
+        };
 
         info!("Collected {} artifacts", artifacts.len());
 
