@@ -37,6 +37,10 @@ pub enum Error {
     #[error("Docker error: {message}")]
     DockerError { message: String },
 
+    /// Parse error
+    #[error("Parse error: {message}")]
+    ParseError { message: String },
+
     /// Generic error with context
     #[error("{context}: {source}")]
     WithContext {
