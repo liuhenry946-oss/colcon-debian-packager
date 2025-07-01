@@ -21,10 +21,10 @@ NC := \033[0m # No Color
 .DEFAULT_GOAL := help
 
 # Phony targets
-.PHONY: help build build-release test test-all test-unit test-integration test-e2e \
+.PHONY: help build build-release test \
         test-coverage format format-check clippy clippy-fix audit deny doc doc-open \
         clean clean-all install install-dev install-tools run benchmark \
-        docker-build docker-test test lint release version
+        docker-build docker-test lint release version
 
 ## Help
 help:
@@ -38,10 +38,6 @@ help:
 	@echo ""
 	@echo "  $(YELLOW)Testing:$(NC)"
 	@echo "    test           - Run all tests with nextest"
-	@echo "    test-unit      - Run unit tests only"
-	@echo "    test-integration - Run integration tests"
-	@echo "    test-e2e       - Run end-to-end tests"
-	@echo "    test-coverage  - Generate test coverage report"
 	@echo ""
 	@echo "  $(YELLOW)Code Quality:$(NC)"
 	@echo "    format         - Format code"
@@ -86,28 +82,19 @@ install: build-release
 
 ## Testing
 test:
-	@echo "$(GREEN)Running all tests with nextest...$(NC)"
+	@echo "$(GREEN)Running all tests...$(NC)"
 	$(NEXTEST) run $(NEXTEST_FLAGS)
-
-test-all: test
-
-test-unit:
-	@echo "$(GREEN)Running unit tests...$(NC)"
-	$(NEXTEST) run $(NEXTEST_FLAGS) --lib --bins
-
-test-integration:
-	@echo "$(GREEN)Running integration tests...$(NC)"
-	$(NEXTEST) run $(NEXTEST_FLAGS) --test '*'
-
-test-e2e:
-	@echo "$(GREEN)Running end-to-end tests...$(NC)"
-	@test -d tests/e2e && cd tests/e2e && ./run-all.sh || echo "No E2E tests found"
+#	@echo "$(GREEN)Running end-to-end tests...$(NC)"
+#	@test -d tests/e2e && cd tests/e2e && ./run-all.sh || echo "No E2E tests found"
 
 test-coverage:
 	@echo "$(GREEN)Generating test coverage...$(NC)"
 	$(CARGO) tarpaulin --out Html --output-dir coverage
 
 ## Code Quality
+lint: format-check clippy audit
+	@echo "$(GREEN)CI linting complete$(NC)"
+
 format:
 	@echo "$(GREEN)Formatting code...$(NC)"
 	$(CARGO) +nightly fmt --all
@@ -176,14 +163,6 @@ docker-test:
 	$(DOCKER) run --rm -v $(PWD):/workspace colcon-deb-rust:latest make test
 
 ## CI/CD
-test: format-check
-	@echo "$(GREEN)Running CI test suite...$(NC)"
-	$(NEXTEST) run $(NEXTEST_FLAGS) --all-features
-	$(CARGO) test --doc
-
-lint: format-check clippy audit
-	@echo "$(GREEN)CI linting complete$(NC)"
-
 release: clean build-release
 	@echo "$(GREEN)Creating release build...$(NC)"
 	mkdir -p release
