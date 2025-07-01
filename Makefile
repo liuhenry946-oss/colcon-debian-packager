@@ -70,11 +70,11 @@ help:
 ## Building
 build:
 	@echo "$(GREEN)Building debug version...$(NC)"
-	$(CARGO) build $(CARGO_FLAGS)
+	$(CARGO) build $(CARGO_FLAGS) --all-targets
 
 build-release:
 	@echo "$(GREEN)Building release version...$(NC)"
-	$(CARGO) build $(RELEASE_FLAGS) $(CARGO_FLAGS)
+	$(CARGO) build $(RELEASE_FLAGS) $(CARGO_FLAGS) --all-targets
 
 install: build-release
 	@echo "$(GREEN)Installing release binary...$(NC)"
