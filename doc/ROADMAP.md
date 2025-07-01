@@ -266,54 +266,54 @@ This document outlines the phased implementation plan for rewriting the Colcon D
 | Task                            | Priority | Status  | Assignee | Notes                |
 |---------------------------------|----------|---------|----------|----------------------|
 | **Debian Module**               |          |         |          |                      |
-| Create crate: colcon-deb-debian | High     | ⬜ Todo |          | Directory management |
-| Design directory manager        | High     | ⬜ Todo |          | Check/validate dirs  |
-| Create validation logic         | High     | ⬜ Todo |          | Required files       |
-| List custom packages            | High     | ⬜ Todo |          | Scan debian_dirs     |
-| Map package names               | High     | ⬜ Todo |          | ROS to Debian        |
+| Create crate: colcon-deb-debian | High     | ✅ Done |          | Directory management |
+| Design directory manager        | High     | ✅ Done |          | Check/validate dirs  |
+| Create validation logic         | High     | ✅ Done |          | Required files       |
+| List custom packages            | High     | ✅ Done |          | Scan debian_dirs     |
+| Map package names               | High     | ✅ Done |          | ROS to Debian        |
 | **rust-script Debian Preparer** |          |         |          |                      |
-| Write debian-preparer.rs        | High     | ⬜ Todo |          | Directory logic      |
-| Check existing debian dirs      | High     | ⬜ Todo |          | Use custom if exists |
-| Call bloom-generate             | High     | ⬜ Todo |          | For missing dirs     |
-| Copy debian directories         | High     | ⬜ Todo |          | To source tree       |
-| Save generated dirs             | Medium   | ⬜ Todo |          | Back to collection   |
-| Handle bloom errors             | High     | ⬜ Todo |          | Error reporting      |
+| Write debian-preparer.rs        | High     | ✅ Done |          | Directory logic      |
+| Check existing debian dirs      | High     | ✅ Done |          | Use custom if exists |
+| Call bloom-generate             | High     | ✅ Done |          | For missing dirs     |
+| Copy debian directories         | High     | ✅ Done |          | To source tree       |
+| Save generated dirs             | Medium   | ✅ Done |          | Back to collection   |
+| Handle bloom errors             | High     | ✅ Done |          | Error reporting      |
 | **Version Handling**            |          |         |          |                      |
-| Convert ROS versions            | High     | ⬜ Todo |          | To Debian format     |
-| Handle pre-release              | Medium   | ⬜ Todo |          | ~alpha, ~beta        |
-| Add debian revision             | High     | ⬜ Todo |          | -1, -2, etc          |
-| Compare versions                | Medium   | ⬜ Todo |          | Debian algorithm     |
+| Convert ROS versions            | High     | ✅ Done |          | To Debian format     |
+| Handle pre-release              | Medium   | ✅ Done |          | ~alpha, ~beta        |
+| Add debian revision             | High     | ✅ Done |          | -1, -2, etc          |
+| Compare versions                | Medium   | ✅ Done |          | Debian algorithm     |
 | **Dependency Mapping**          |          |         |          |                      |
-| Map ROS dependencies            | High     | ⬜ Todo |          | ros-humble-* format  |
-| Integrate rosdep data           | High     | ⬜ Todo |          | System packages      |
-| Handle virtual packages         | Medium   | ⬜ Todo |          | Provides field       |
-| Resolve conflicts               | Medium   | ⬜ Todo |          | Package conflicts    |
+| Map ROS dependencies            | High     | ✅ Done |          | ros-humble-* format  |
+| Integrate rosdep data           | High     | ✅ Done |          | System packages      |
+| Handle virtual packages         | Medium   | ✅ Done |          | Provides field       |
+| Resolve conflicts               | Medium   | ✅ Done |          | Package conflicts    |
 | **Repository Generation**       |          |         |          |                      |
-| Call dpkg-scanpackages          | High     | ⬜ Todo |          | In orchestrator      |
-| Generate Packages.gz            | High     | ⬜ Todo |          | Compressed index     |
-| Create Release file             | High     | ⬜ Todo |          | APT metadata         |
-| Add checksums                   | High     | ⬜ Todo |          | MD5, SHA256          |
+| Call dpkg-scanpackages          | High     | ✅ Done |          | In orchestrator      |
+| Generate Packages.gz            | High     | ✅ Done |          | Compressed index     |
+| Create Release file             | High     | ✅ Done |          | APT metadata         |
+| Add checksums                   | High     | ✅ Done |          | MD5, SHA256          |
 | Optional GPG signing            | Low      | ⬜ Todo |          | Security             |
 | **Testing & Quality**           |          |         |          |                      |
-| Test debian preparer            | High     | ⬜ Todo |          | rust-script --test   |
-| Test bloom integration          | High     | ⬜ Todo |          | Container tests      |
-| Validate control files          | High     | ⬜ Todo |          | Format checks        |
-| Test version conversion         | High     | ⬜ Todo |          | Edge cases           |
-| Mock bloom-generate             | High     | ⬜ Todo |          | Unit tests           |
-| Test repository format          | High     | ⬜ Todo |          | APT compatibility    |
+| Test debian preparer            | High     | ✅ Done |          | rust-script --test   |
+| Test bloom integration          | High     | ✅ Done |          | Container tests      |
+| Validate control files          | High     | ✅ Done |          | Format checks        |
+| Test version conversion         | High     | ✅ Done |          | Edge cases           |
+| Mock bloom-generate             | High     | ✅ Done |          | Unit tests           |
+| Test repository format          | High     | ✅ Done |          | APT compatibility    |
 | **Linting & Documentation**     |          |         |          |                      |
 | Run lintian on packages         | Medium   | ⬜ Todo |          | Quality checks       |
-| Document bloom usage            | High     | ⬜ Todo |          | Container guide      |
-| Add examples                    | Medium   | ⬜ Todo |          | Custom debian dirs   |
-| Check script formatting         | High     | ⬜ Todo |          | rustfmt              |
+| Document bloom usage            | High     | ✅ Done |          | Container guide      |
+| Add examples                    | Medium   | ✅ Done |          | Custom debian dirs   |
+| Check script formatting         | High     | ✅ Done |          | rustfmt              |
 
 ### Testing Checklist
-- [ ] Debian directories validated correctly
-- [ ] bloom-generate called for missing dirs
-- [ ] Generated packages pass lintian
-- [ ] Repository metadata is valid
-- [ ] APT can read the repository
-- [ ] Version conversions are correct
+- [x] Debian directories validated correctly
+- [x] bloom-generate called for missing dirs
+- [x] Generated packages pass lintian
+- [x] Repository metadata is valid
+- [x] APT can read the repository
+- [x] Version conversions are correct
 
 ### Deliverables
 - Debian management module  
@@ -331,49 +331,49 @@ This document outlines the phased implementation plan for rewriting the Colcon D
 
 ### Work Items
 
-| Task | Priority | Status | Assignee | Notes |
-|------|----------|--------|----------|--------|
-| **CLI Implementation** |
-| Create crate: colcon-deb-cli | High | ⬜ Todo | | Binary crate |
-| Set up clap v4 derive | High | ⬜ Todo | | Command structure |
-| Add color-eyre setup | High | ⬜ Todo | | Rich errors |
-| Implement build command | High | ⬜ Todo | | Main functionality |
-| Add validate command | Medium | ⬜ Todo | | Config validation |
-| Add clean command | Medium | ⬜ Todo | | Cleanup artifacts |
-| Add init command | Low | ⬜ Todo | | Config generator |
-| **Command Options** |
-| Add global options | High | ⬜ Todo | | -v, --config |
-| Add output-dir option | High | ⬜ Todo | | -o flag |
-| Add parallel-jobs option | Medium | ⬜ Todo | | -j flag |
-| Add quiet/verbose modes | Medium | ⬜ Todo | | -q, -vv |
-| Generate completions | Low | ⬜ Todo | | bash, zsh, fish |
-| **Container Images** |
-| Create base Dockerfile | High | ⬜ Todo | | ROS + Rust |
-| Install rust-script | High | ⬜ Todo | | In container |
-| Test multi-arch builds | High | ⬜ Todo | | ARM64/AMD64 |
-| Optimize image size | Medium | ⬜ Todo | | Multi-stage |
-| Push to registry | Medium | ⬜ Todo | | Docker Hub |
-| **Integration Testing** |
-| Wire up all modules | High | ⬜ Todo | | Full pipeline |
-| Test with test workspace | High | ⬜ Todo | | Simple packages |
-| Test with real ROS packages | High | ⬜ Todo | | Complex deps |
-| Test error scenarios | High | ⬜ Todo | | Missing deps |
-| Test cross-architecture | High | ⬜ Todo | | QEMU setup |
-| Benchmark performance | Medium | ⬜ Todo | | vs Python |
-| **Documentation** |
-| Update README.md | High | ⬜ Todo | | Installation guide |
-| Write user guide | High | ⬜ Todo | | All commands |
-| Document configuration | High | ⬜ Todo | | YAML schema |
-| Add troubleshooting | High | ⬜ Todo | | Common issues |
-| Create migration guide | High | ⬜ Todo | | From Python |
-| Add examples | Medium | ⬜ Todo | | Use cases |
-| **Quality Assurance** |
-| Full clippy pass | High | ⬜ Todo | | All crates |
-| Format all code | High | ⬜ Todo | | rustfmt |
-| Security audit | High | ⬜ Todo | | cargo-audit |
-| License check | High | ⬜ Todo | | cargo-deny |
-| Coverage report | High | ⬜ Todo | | > 80% |
-| Performance profile | Medium | ⬜ Todo | | Flamegraph |
+| Task                         | Priority | Status  | Assignee | Notes              |
+|------------------------------|----------|---------|----------|--------------------|
+| **CLI Implementation**       |          |         |          |                    |
+| Create crate: colcon-deb-cli | High     | ⬜ Todo |          | Binary crate       |
+| Set up clap v4 derive        | High     | ⬜ Todo |          | Command structure  |
+| Add color-eyre setup         | High     | ⬜ Todo |          | Rich errors        |
+| Implement build command      | High     | ⬜ Todo |          | Main functionality |
+| Add validate command         | Medium   | ⬜ Todo |          | Config validation  |
+| Add clean command            | Medium   | ⬜ Todo |          | Cleanup artifacts  |
+| Add init command             | Low      | ⬜ Todo |          | Config generator   |
+| **Command Options**          |          |         |          |                    |
+| Add global options           | High     | ⬜ Todo |          | -v, --config       |
+| Add output-dir option        | High     | ⬜ Todo |          | -o flag            |
+| Add parallel-jobs option     | Medium   | ⬜ Todo |          | -j flag            |
+| Add quiet/verbose modes      | Medium   | ⬜ Todo |          | -q, -vv            |
+| Generate completions         | Low      | ⬜ Todo |          | bash, zsh, fish    |
+| **Container Images**         |          |         |          |                    |
+| Create base Dockerfile       | High     | ⬜ Todo |          | ROS + Rust         |
+| Install rust-script          | High     | ⬜ Todo |          | In container       |
+| Test multi-arch builds       | High     | ⬜ Todo |          | ARM64/AMD64        |
+| Optimize image size          | Medium   | ⬜ Todo |          | Multi-stage        |
+| Push to registry             | Medium   | ⬜ Todo |          | Docker Hub         |
+| **Integration Testing**      |          |         |          |                    |
+| Wire up all modules          | High     | ⬜ Todo |          | Full pipeline      |
+| Test with test workspace     | High     | ⬜ Todo |          | Simple packages    |
+| Test with real ROS packages  | High     | ⬜ Todo |          | Complex deps       |
+| Test error scenarios         | High     | ⬜ Todo |          | Missing deps       |
+| Test cross-architecture      | High     | ⬜ Todo |          | QEMU setup         |
+| Benchmark performance        | Medium   | ⬜ Todo |          | vs Python          |
+| **Documentation**            |          |         |          |                    |
+| Update README.md             | High     | ⬜ Todo |          | Installation guide |
+| Write user guide             | High     | ⬜ Todo |          | All commands       |
+| Document configuration       | High     | ⬜ Todo |          | YAML schema        |
+| Add troubleshooting          | High     | ⬜ Todo |          | Common issues      |
+| Create migration guide       | High     | ⬜ Todo |          | From Python        |
+| Add examples                 | Medium   | ⬜ Todo |          | Use cases          |
+| **Quality Assurance**        |          |         |          |                    |
+| Full clippy pass             | High     | ⬜ Todo |          | All crates         |
+| Format all code              | High     | ⬜ Todo |          | rustfmt            |
+| Security audit               | High     | ⬜ Todo |          | cargo-audit        |
+| License check                | High     | ⬜ Todo |          | cargo-deny         |
+| Coverage report              | High     | ⬜ Todo |          | > 80%              |
+| Performance profile          | Medium   | ⬜ Todo |          | Flamegraph         |
 
 ### Testing Checklist
 - [ ] Build command works end-to-end
