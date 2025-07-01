@@ -198,13 +198,13 @@ impl DebianManager {
             std::fs::remove_dir_all(target)?;
         }
 
-        self.copy_directory_recursive(source, target)?;
+        Self::copy_directory_recursive(source, target)?;
         debug!("Copied debian directory from {} to {}", source.display(), target.display());
         Ok(())
     }
 
     /// Copy directory recursively
-    fn copy_directory_recursive(&self, source: &Path, target: &Path) -> Result<()> {
+    fn copy_directory_recursive(source: &Path, target: &Path) -> Result<()> {
         std::fs::create_dir_all(target)?;
 
         for entry in std::fs::read_dir(source)? {
@@ -213,7 +213,7 @@ impl DebianManager {
             let target_path = target.join(entry.file_name());
 
             if source_path.is_dir() {
-                self.copy_directory_recursive(&source_path, &target_path)?;
+                Self::copy_directory_recursive(&source_path, &target_path)?;
             } else {
                 std::fs::copy(&source_path, &target_path)?;
             }
@@ -361,6 +361,7 @@ mod tests {
 
     use super::*;
 
+    #[allow(dead_code)]
     fn create_test_package() -> Package {
         Package {
             name: "test_package".to_string(),

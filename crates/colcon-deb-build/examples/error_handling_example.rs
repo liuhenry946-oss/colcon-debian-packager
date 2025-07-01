@@ -86,7 +86,7 @@ async fn main() -> Result<()> {
     let package_attempt_count = Arc::new(std::sync::atomic::AtomicU32::new(0));
     let package_attempt_count_clone = Arc::clone(&package_attempt_count);
 
-    let result = recovery_manager
+    recovery_manager
         .execute_package_operation_with_retry("my_package", "build", move || {
             let count =
                 package_attempt_count_clone.fetch_add(1, std::sync::atomic::Ordering::SeqCst);

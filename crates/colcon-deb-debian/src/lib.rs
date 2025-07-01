@@ -19,7 +19,6 @@
 //!
 //! # async fn example() -> Result<(), Box<dyn std::error::Error>> {
 //! use colcon_deb_core::package::{BuildType, Dependencies, Maintainer, Package};
-//! use colcon_deb_core::Package;
 //! use colcon_deb_debian::{
 //!     DebianManager, DebianValidator, DependencyMapper, RepositoryGenerator, VersionHandler,
 //! };

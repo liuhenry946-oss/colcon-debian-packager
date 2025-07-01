@@ -67,7 +67,7 @@ impl MockFailureSource {
         if self.always_fail || attempt <= self.succeed_after {
             Err(BuildError::transient(format!("{} (attempt {})", self.error_message, attempt)))
         } else {
-            Ok(format!("Success after {} attempts", attempt))
+            Ok(format!("Success after {attempt} attempts"))
         }
     }
 
@@ -418,7 +418,7 @@ async fn test_concurrent_recovery_operations() {
 
             let failure_source = MockFailureSource::new(
                 1, // Succeed after 1 failure
-                format!("Concurrent operation {}", i),
+                format!("Concurrent operation {i}"),
             );
 
             retry_with_backoff(|| failure_source.attempt(), &config, None).await
@@ -432,7 +432,7 @@ async fn test_concurrent_recovery_operations() {
     // All operations should eventually succeed
     for (i, result) in results.into_iter().enumerate() {
         let operation_result = result.unwrap();
-        assert!(operation_result.is_ok(), "Operation {} failed", i);
+        assert!(operation_result.is_ok(), "Operation {i} failed");
     }
 }
 

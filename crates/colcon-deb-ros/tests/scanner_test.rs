@@ -13,7 +13,7 @@ fn test_scan_test_workspace() {
         .join("tests/test_workspace/src");
 
     if !workspace_path.exists() {
-        eprintln!("Test workspace not found at {:?}, skipping test", workspace_path);
+        eprintln!("Test workspace not found at {workspace_path:?}, skipping test");
         return;
     }
 
@@ -49,7 +49,7 @@ fn test_find_package_paths() {
         .join("tests/test_workspace/src");
 
     if !workspace_path.exists() {
-        eprintln!("Test workspace not found at {:?}, skipping test", workspace_path);
+        eprintln!("Test workspace not found at {workspace_path:?}, skipping test");
         return;
     }
 
@@ -59,7 +59,7 @@ fn test_find_package_paths() {
 
     // Check that paths point to package directories
     for path in &paths {
-        assert!(path.join("package.xml").exists(), "No package.xml in {:?}", path);
+        assert!(path.join("package.xml").exists(), "No package.xml in {path:?}");
     }
 }
 

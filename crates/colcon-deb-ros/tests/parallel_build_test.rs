@@ -12,9 +12,9 @@ fn simulate_deb_build(package_name: &str, build_time_ms: u64) -> Result<String, 
 
     // Simulate occasional failures
     if package_name.contains("fail") {
-        Err(format!("Failed to build {}", package_name))
+        Err(format!("Failed to build {package_name}"))
     } else {
-        Ok(format!("{}_0.1.0-1_amd64.deb", package_name))
+        Ok(format!("{package_name}_0.1.0-1_amd64.deb"))
     }
 }
 
@@ -65,7 +65,7 @@ fn test_parallel_deb_creation() {
     let results = results.lock().unwrap();
     let errors = errors.lock().unwrap();
 
-    println!("Parallel build completed in {:?}", elapsed);
+    println!("Parallel build completed in {elapsed:?}");
     println!("Successfully built {} packages", results.len());
     println!("Failed to build {} packages", errors.len());
 
@@ -76,7 +76,7 @@ fn test_parallel_deb_creation() {
     // Verify parallel execution - should be faster than sequential
     // Sequential would take 100+150+80+120 = 450ms minimum
     // Parallel should take ~150ms (the longest build)
-    assert!(elapsed < Duration::from_millis(300), "Parallel build too slow: {:?}", elapsed);
+    assert!(elapsed < Duration::from_millis(300), "Parallel build too slow: {elapsed:?}");
 
     // Verify all expected .deb files
     for (pkg_name, deb_file) in results.iter() {
@@ -188,6 +188,6 @@ fn test_concurrent_build_limits() {
     let max_concurrent = *max_concurrent.lock().unwrap();
 
     // With 2 threads, we should never have more than 2 concurrent builds
-    assert!(max_concurrent <= 2, "Too many concurrent builds: {}", max_concurrent);
+    assert!(max_concurrent <= 2, "Too many concurrent builds: {max_concurrent}");
     assert!(max_concurrent >= 1, "No concurrent builds detected");
 }

@@ -18,7 +18,7 @@ async fn main() {
 }
 
 async fn simulate_build_process(progress_ui: &dyn ProgressUI) {
-    let packages = vec!["std_msgs", "geometry_msgs", "sensor_msgs", "nav_msgs"];
+    let packages = ["std_msgs", "geometry_msgs", "sensor_msgs", "nav_msgs"];
 
     // Start build stage
     progress_ui.update(&ProgressEvent::Stage {
@@ -57,7 +57,7 @@ async fn simulate_build_process(progress_ui: &dyn ProgressUI) {
             progress_ui.update(&ProgressEvent::Progress {
                 current: step,
                 total: 5,
-                message: Some(format!("Building {} step {}", package, step)),
+                message: Some(format!("Building {package} step {step}")),
             });
             tokio::time::sleep(Duration::from_millis(200)).await;
         }

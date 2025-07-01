@@ -39,9 +39,8 @@ fn test_scanning_performance_baseline() {
     // find_package_paths should be faster than full scan
     assert!(
         find_duration < scan_duration,
-        "find_package_paths ({:?}) should be faster than scan_workspace ({:?})",
-        find_duration,
-        scan_duration
+        "find_package_paths ({find_duration:?}) should be faster than scan_workspace \
+         ({scan_duration:?})"
     );
 }
 
@@ -86,8 +85,8 @@ fn test_parallel_parsing_performance() {
         .collect();
     let parallel_duration = start.elapsed();
 
-    println!("Sequential parsing: {:?}", sequential_duration);
-    println!("Parallel parsing: {:?}", parallel_duration);
+    println!("Sequential parsing: {sequential_duration:?}");
+    println!("Parallel parsing: {parallel_duration:?}");
     println!("Number of packages: {}", package_files.len());
 
     // Verify same results
@@ -119,21 +118,20 @@ fn test_colcon_ignore_performance() {
 
     // Create some normal packages
     for i in 0..5 {
-        let pkg_dir = src_dir.join(format!("package_{}", i));
+        let pkg_dir = src_dir.join(format!("package_{i}"));
         fs::create_dir(&pkg_dir).unwrap();
         fs::write(
             pkg_dir.join("package.xml"),
             format!(
                 r#"<?xml version="1.0"?>
 <package format="3">
-  <name>package_{}</name>
+  <name>package_{i}</name>
   <version>1.0.0</version>
   <description>Test</description>
   <maintainer email="test@example.com">Test</maintainer>
   <license>MIT</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
-</package>"#,
-                i
+</package>"#
             ),
         )
         .unwrap();
@@ -141,14 +139,14 @@ fn test_colcon_ignore_performance() {
 
     // Create many ignored directories with deep nesting
     for i in 0..10 {
-        let ignored_dir = src_dir.join(format!("ignored_{}", i));
+        let ignored_dir = src_dir.join(format!("ignored_{i}"));
         fs::create_dir(&ignored_dir).unwrap();
         fs::write(ignored_dir.join("COLCON_IGNORE"), "").unwrap();
 
         // Create deep directory structure that should be skipped
         let mut current = ignored_dir;
         for j in 0..10 {
-            current = current.join(format!("subdir_{}", j));
+            current = current.join(format!("subdir_{j}"));
             fs::create_dir(&current).unwrap();
             fs::write(
                 current.join("package.xml"),
@@ -163,7 +161,7 @@ fn test_colcon_ignore_performance() {
     let packages = scan_workspace(&src_dir).expect("Failed to scan");
     let duration = start.elapsed();
 
-    println!("Scanning with {} ignored directories took: {:?}", 10, duration);
+    println!("Scanning with {count} ignored directories took: {duration:?}", count = 10);
 
     // Should only find the 5 non-ignored packages
     assert_eq!(packages.len(), 5);
@@ -171,8 +169,7 @@ fn test_colcon_ignore_performance() {
     // Even with many ignored directories, scanning should be fast
     assert!(
         duration.as_millis() < 200,
-        "Scanning with ignored directories took too long: {:?}",
-        duration
+        "Scanning with ignored directories took too long: {duration:?}"
     );
 }
 
@@ -195,7 +192,7 @@ fn test_large_package_xml_parsing() {
 
     // Add many dependencies
     for i in 0..100 {
-        writeln!(xml, "  <depend>dependency_{}</depend>", i).unwrap();
+        writeln!(xml, "  <depend>dependency_{i}</depend>").unwrap();
     }
 
     xml.push_str("</package>");
@@ -205,7 +202,7 @@ fn test_large_package_xml_parsing() {
     let manifest = colcon_deb_ros::parse_package_manifest(&xml).expect("Failed to parse");
     let duration = start.elapsed();
 
-    println!("Parsing large package.xml with 100 dependencies took: {:?}", duration);
+    println!("Parsing large package.xml with 100 dependencies took: {duration:?}");
 
     // Verify correct parsing
     assert_eq!(manifest.name, "large_package");
@@ -213,7 +210,6 @@ fn test_large_package_xml_parsing() {
     // Parsing even large package.xml should be fast
     assert!(
         duration.as_millis() < 50,
-        "Parsing large package.xml took too long: {:?}",
-        duration
+        "Parsing large package.xml took too long: {duration:?}"
     );
 }

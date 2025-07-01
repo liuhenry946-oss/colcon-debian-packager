@@ -44,6 +44,12 @@ pub struct MockDockerService {
     progress_sender: Arc<Mutex<Option<mpsc::UnboundedSender<ProgressEvent>>>>,
 }
 
+impl Default for MockDockerService {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MockDockerService {
     pub fn new() -> Self {
         Self {
@@ -81,7 +87,7 @@ impl MockDockerService {
         if let Some(sender) = sender {
             let event = ProgressEvent::Log {
                 level: LogLevel::Info,
-                message: format!("Executing {} for package {:?}", operation, package),
+                message: format!("Executing {operation} for package {package:?}"),
             };
             let _ = sender.send(event);
         }
@@ -109,10 +115,7 @@ impl MockDockerService {
             .cloned()
             .unwrap_or(false);
         if should_fail {
-            return Err(BuildError::build_failed(
-                "mock",
-                format!("Mock failure for {}", operation),
-            ));
+            return Err(BuildError::build_failed("mock", format!("Mock failure for {operation}")));
         }
 
         Ok(())
@@ -122,7 +125,7 @@ impl MockDockerService {
 #[async_trait]
 impl DockerServiceTrait for MockDockerService {
     async fn pull_image(&self, image: &str) -> colcon_deb_docker::Result<()> {
-        self.execute_operation(&format!("pull_image_{}", image), None)
+        self.execute_operation(&format!("pull_image_{image}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::PullFailed {
                 image: image.to_string(),
@@ -134,9 +137,9 @@ impl DockerServiceTrait for MockDockerService {
         &self,
         dockerfile_path: &str,
         tag: &str,
-        build_args: Option<Vec<(String, String)>>,
+        _build_args: Option<Vec<(String, String)>>,
     ) -> colcon_deb_docker::Result<()> {
-        self.execute_operation(&format!("build_image_{}_{}", dockerfile_path, tag), None)
+        self.execute_operation(&format!("build_image_{dockerfile_path}_{tag}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::BuildFailed { reason: e.to_string() })
     }
@@ -151,22 +154,22 @@ impl DockerServiceTrait for MockDockerService {
     }
 
     async fn image_exists(&self, image: &str) -> colcon_deb_docker::Result<bool> {
-        self.execute_operation(&format!("image_exists_{}", image), None)
+        self.execute_operation(&format!("image_exists_{image}"), None)
             .await
-            .map_err(|e| colcon_deb_docker::DockerError::ImageNotFound {
+            .map_err(|_e| colcon_deb_docker::DockerError::ImageNotFound {
                 name: image.to_string(),
             })?;
         Ok(true)
     }
 
     async fn stop_container(&self, container_id: &str) -> colcon_deb_docker::Result<()> {
-        self.execute_operation(&format!("stop_container_{}", container_id), None)
+        self.execute_operation(&format!("stop_container_{container_id}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed { reason: e.to_string() })
     }
 
     async fn remove_container(&self, container_id: &str) -> colcon_deb_docker::Result<()> {
-        self.execute_operation(&format!("remove_container_{}", container_id), None)
+        self.execute_operation(&format!("remove_container_{container_id}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed { reason: e.to_string() })
     }
@@ -177,7 +180,7 @@ impl DockerServiceTrait for MockDockerService {
         command: Vec<String>,
     ) -> colcon_deb_docker::Result<ContainerOutput> {
         let cmd_str = command.join(" ");
-        self.execute_operation(&format!("exec_{}_{}", container_id, cmd_str), None)
+        self.execute_operation(&format!("exec_{container_id}_{cmd_str}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed {
                 reason: e.to_string(),
@@ -194,7 +197,7 @@ impl DockerServiceTrait for MockDockerService {
         container_id: &str,
         path: &str,
     ) -> colcon_deb_docker::Result<Vec<u8>> {
-        self.execute_operation(&format!("copy_from_{}_{}", container_id, path), None)
+        self.execute_operation(&format!("copy_from_{container_id}_{path}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed {
                 reason: e.to_string(),
@@ -222,7 +225,7 @@ impl DockerServiceTrait for MockDockerService {
     ) -> colcon_deb_docker::Result<
         std::pin::Pin<Box<dyn futures::Stream<Item = colcon_deb_docker::Result<LogOutput>> + Send>>,
     > {
-        self.execute_operation(&format!("get_logs_{}", container_id), None)
+        self.execute_operation(&format!("get_logs_{container_id}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed {
                 reason: e.to_string(),
@@ -232,7 +235,7 @@ impl DockerServiceTrait for MockDockerService {
     }
 
     async fn wait_container(&self, container_id: &str) -> colcon_deb_docker::Result<i64> {
-        self.execute_operation(&format!("wait_{}", container_id), None)
+        self.execute_operation(&format!("wait_{container_id}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed {
                 reason: e.to_string(),
@@ -241,7 +244,7 @@ impl DockerServiceTrait for MockDockerService {
     }
 
     async fn list_containers(&self, all: bool) -> colcon_deb_docker::Result<Vec<String>> {
-        self.execute_operation(&format!("list_containers_{}", all), None)
+        self.execute_operation(&format!("list_containers_{all}"), None)
             .await
             .map_err(|e| colcon_deb_docker::DockerError::ExecutionFailed {
                 reason: e.to_string(),
@@ -256,6 +259,12 @@ pub struct MockProgressUI {
     events: Arc<Mutex<Vec<ProgressEvent>>>,
     clear_count: Arc<Mutex<usize>>,
     finish_count: Arc<Mutex<usize>>,
+}
+
+impl Default for MockProgressUI {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl MockProgressUI {
@@ -375,15 +384,15 @@ fn create_test_packages() -> Vec<Package> {
 
 #[tokio::test]
 async fn test_parallel_execution_multiple_packages() {
-    let (config, _temp_dir) = create_test_config();
+    let (_config, _temp_dir) = create_test_config();
     let mock_docker = MockDockerService::new();
     let packages = create_test_packages();
 
     // Create progress channel
-    let (progress_tx, mut progress_rx) = mpsc::unbounded_channel();
+    let (progress_tx, _progress_rx) = mpsc::unbounded_channel();
     mock_docker.set_progress_sender(progress_tx);
 
-    let mock_progress = MockProgressUI::new();
+    let _mock_progress = MockProgressUI::new();
 
     // Test that multiple packages can be built in parallel
     let start_time = std::time::Instant::now();
@@ -404,7 +413,7 @@ async fn test_parallel_execution_multiple_packages() {
             let package_name = package.name.clone();
             async move {
                 docker
-                    .execute_operation(&format!("build_{}", package_name), Some(&package_name))
+                    .execute_operation(&format!("build_{package_name}"), Some(&package_name))
                     .await
             }
         })
@@ -421,8 +430,7 @@ async fn test_parallel_execution_multiple_packages() {
     // Should complete faster than sequential execution (3 * 100ms = 300ms)
     assert!(
         duration < Duration::from_millis(250),
-        "Parallel execution took too long: {:?}",
-        duration
+        "Parallel execution took too long: {duration:?}"
     );
 
     // Verify all operations were recorded
@@ -474,7 +482,7 @@ async fn test_failure_scenarios_and_recovery() {
 
 #[tokio::test]
 async fn test_progress_reporting_integration() {
-    let (config, _temp_dir) = create_test_config();
+    let (_config, _temp_dir) = create_test_config();
     let mock_docker = MockDockerService::new();
     let packages = create_test_packages();
 
@@ -512,7 +520,7 @@ async fn test_progress_reporting_integration() {
     for (i, package) in packages.iter().enumerate() {
         match &events[i] {
             ProgressEvent::Log { level, message } => {
-                assert_eq!(*level, LogLevel::Info);
+                assert_eq!(level, &LogLevel::Info);
                 assert!(message.contains(&format!("build_{}", package.name)));
                 assert!(message.contains(&package.name));
             }
@@ -523,13 +531,13 @@ async fn test_progress_reporting_integration() {
 
 #[tokio::test]
 async fn test_shutdown_handling() {
-    let (config, _temp_dir) = create_test_config();
+    let (_config, _temp_dir) = create_test_config();
     let mock_docker = MockDockerService::new();
 
     // Create shutdown manager
     let shutdown_manager = ShutdownManager::new(Duration::from_secs(5));
     let shutdown_signal = shutdown_manager.shutdown_signal();
-    let mut shutdown_receiver = shutdown_manager.shutdown_receiver();
+    let _shutdown_receiver = shutdown_manager.shutdown_receiver();
 
     // Add delays to simulate long-running operations
     mock_docker.set_delay("long_operation", Duration::from_millis(500));
@@ -670,7 +678,7 @@ async fn test_build_context_state_management() {
 
 #[tokio::test]
 async fn test_concurrent_package_builds() {
-    let (config, _temp_dir) = create_test_config();
+    let (_config, _temp_dir) = create_test_config();
     let mock_docker = MockDockerService::new();
     let packages = create_test_packages();
 
@@ -689,7 +697,7 @@ async fn test_concurrent_package_builds() {
             let package_name = package.name.clone();
             async move {
                 docker
-                    .execute_operation(&format!("build_{}", package_name), Some(&package_name))
+                    .execute_operation(&format!("build_{package_name}"), Some(&package_name))
                     .await
             }
         })
@@ -707,13 +715,11 @@ async fn test_concurrent_package_builds() {
     // but definitely faster than sequential (50 + 100 + 75 = 225ms)
     assert!(
         duration < Duration::from_millis(150),
-        "Concurrent builds took too long: {:?}",
-        duration
+        "Concurrent builds took too long: {duration:?}"
     );
     assert!(
         duration >= Duration::from_millis(95),
-        "Concurrent builds completed too quickly: {:?}",
-        duration
+        "Concurrent builds completed too quickly: {duration:?}"
     );
 }
 
@@ -784,7 +790,7 @@ async fn test_progress_ui_integration() {
     match &recorded_events[1] {
         ProgressEvent::PackageComplete { name, success, .. } => {
             assert_eq!(name, "package_b");
-            assert!(*success);
+            assert!(success);
         }
         _ => panic!("Expected PackageComplete event"),
     }

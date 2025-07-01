@@ -16,7 +16,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Check architecture compatibility
     let image = "ros:humble-ros-base";
-    println!("Checking architecture compatibility for {}", image);
+    println!("Checking architecture compatibility for {image}");
 
     let compatibility = check_architecture_compatibility(docker, image).await?;
     println!("Host architecture: {}", compatibility.host.arch);
@@ -27,7 +27,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if !compatibility.can_run() {
         eprintln!("Cannot run container!");
         for warning in &compatibility.warnings {
-            eprintln!("Warning: {}", warning);
+            eprintln!("Warning: {warning}");
         }
         return Ok(());
     }
@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("\nStarting container...");
     let container_id = service.run_container(&spec).await?;
-    println!("Container started: {}", container_id);
+    println!("Container started: {container_id}");
 
     // Monitor progress
     println!("\nMonitoring build progress...");
@@ -58,14 +58,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .stream_with_progress(&container_id, |event| match event {
             ProgressEvent::PackageStart { name, current, total } => {
                 if let (Some(c), Some(t)) = (current, total) {
-                    println!("[{}/{}] Starting package: {}", c, t, name);
+                    println!("[{c}/{t}] Starting package: {name}");
                 } else {
-                    println!("Starting package: {}", name);
+                    println!("Starting package: {name}");
                 }
             }
             ProgressEvent::PackageComplete { name, success, error } => {
                 if *success {
-                    println!("✓ Completed package: {}", name);
+                    println!("✓ Completed package: {name}");
                 } else {
                     println!(
                         "✗ Failed package: {} - {}",
@@ -75,9 +75,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             ProgressEvent::Stage { name, description } => {
-                println!("\n=== Stage: {} ===", name);
+                println!("\n=== Stage: {name} ===");
                 if let Some(desc) = description {
-                    println!("    {}", desc);
+                    println!("    {desc}");
                 }
             }
             ProgressEvent::Progress { current, total, message } => {
@@ -85,7 +85,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("Progress: {:.1}% - {}", percentage, message.as_deref().unwrap_or(""));
             }
             ProgressEvent::Log { level, message } => {
-                println!("[{}] {}", format!("{:?}", level).to_uppercase(), message);
+                println!("[{}] {message}", format!("{level:?}").to_uppercase());
             }
         })
         .await?;
@@ -97,7 +97,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Failed: {}", progress.failed_packages());
 
     if let Some(percentage) = progress.completion_percentage() {
-        println!("Completion: {:.1}%", percentage);
+        println!("Completion: {percentage:.1}%");
     }
 
     // Cleanup

@@ -139,13 +139,13 @@ fn test_rust_script_scanner() {
     let packages: serde_json::Value = match serde_json::from_str(&json) {
         Ok(v) => v,
         Err(e) => {
-            eprintln!("Failed to parse JSON: {}", e);
-            eprintln!("JSON output: {}", json);
+            eprintln!("Failed to parse JSON: {e}");
+            eprintln!("JSON output: {json}");
             panic!("Invalid JSON output from rust-script");
         }
     };
 
-    assert!(packages.is_object(), "Expected object, got: {:?}", packages);
+    assert!(packages.is_object(), "Expected object, got: {packages:?}");
     let packages_obj = packages.as_object().unwrap();
 
     let packages_array = packages_obj

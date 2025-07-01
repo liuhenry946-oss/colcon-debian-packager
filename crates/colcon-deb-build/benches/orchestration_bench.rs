@@ -42,10 +42,10 @@ fn create_bench_config() -> Config {
 fn create_bench_packages(count: usize) -> Vec<Package> {
     (0..count)
         .map(|i| Package {
-            name: format!("benchmark_package_{}", i),
-            path: format!("/workspace/src/package_{}", i).into(),
+            name: format!("benchmark_package_{i}"),
+            path: format!("/workspace/src/package_{i}").into(),
             version: "1.0.0".to_string(),
-            description: format!("Benchmark package {}", i),
+            description: format!("Benchmark package {i}"),
             license: "MIT".to_string(),
             build_type: colcon_deb_core::package::BuildType::Cmake,
             dependencies: colcon_deb_core::package::Dependencies {
@@ -157,7 +157,7 @@ fn bench_progress_events(c: &mut Criterion) {
                     let events: Vec<_> = (0..num_events)
                         .map(|i| ProgressEvent::Log {
                             level: LogLevel::Info,
-                            message: format!("Processing item {}", i),
+                            message: format!("Processing item {i}"),
                         })
                         .collect();
 
@@ -240,7 +240,7 @@ fn bench_recovery_mechanisms(c: &mut Criterion) {
             let _recovery_manager = RecoveryManager::with_strategy(BuildRecoveryStrategy::Retry);
 
             // Benchmark strategy determination for different scenarios
-            let errors = vec![
+            let errors = [
                 BuildError::transient("Network error"),
                 BuildError::Docker(colcon_deb_docker::DockerError::ExecutionFailed {
                     reason: "Container failed".to_string(),
@@ -250,8 +250,7 @@ fn bench_recovery_mechanisms(c: &mut Criterion) {
 
             let contexts: Vec<_> = errors
                 .iter()
-                .enumerate()
-                .map(|(_i, error)| RecoveryContext::for_package("build", "test_package", error))
+                .map(|error| RecoveryContext::for_package("build", "test_package", error))
                 .collect();
 
             let strategies: Vec<_> = contexts
@@ -342,7 +341,7 @@ fn bench_concurrent_progress(c: &mut Criterion) {
                                 for i in 0..1000 {
                                     let event = ProgressEvent::Log {
                                         level: LogLevel::Info,
-                                        message: format!("Sender {} message {}", sender_id, i),
+                                        message: format!("Sender {sender_id} message {i}"),
                                     };
                                     tx.send(event).unwrap();
                                 }

@@ -22,7 +22,7 @@ fn create_test_package(dir: &Path, name: &str, deps: Vec<&str>) {
         name,
         name,
         deps.iter()
-            .map(|d| format!("  <depend>{}</depend>", d))
+            .map(|d| format!("  <depend>{d}</depend>"))
             .collect::<Vec<_>>()
             .join("\n")
     );
@@ -39,15 +39,15 @@ fn create_large_workspace(num_packages: usize) -> TempDir {
     for i in 0..num_packages {
         if i > 0 {
             let dep_name = format!("package_{}", i - 1);
-            create_test_package(&src_dir, &format!("package_{}", i), vec![&dep_name]);
+            create_test_package(&src_dir, &format!("package_{i}"), vec![&dep_name]);
         } else {
-            create_test_package(&src_dir, &format!("package_{}", i), vec![]);
+            create_test_package(&src_dir, &format!("package_{i}"), vec![]);
         }
     }
 
     // Add some packages with COLCON_IGNORE
     for i in 0..5 {
-        let pkg_name = format!("ignored_package_{}", i);
+        let pkg_name = format!("ignored_package_{i}");
         create_test_package(&src_dir, &pkg_name, vec![]);
         std::fs::write(src_dir.join(&pkg_name).join("COLCON_IGNORE"), "").unwrap();
     }

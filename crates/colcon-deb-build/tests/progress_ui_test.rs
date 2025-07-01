@@ -6,7 +6,6 @@
 //! - Error display and handling
 //! - Different progress UI implementations
 
-use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -323,7 +322,7 @@ async fn test_concurrent_progress_updates() {
             for update in 0..updates_per_task {
                 let event = create_test_log_event(
                     LogLevel::Info,
-                    &format!("Task {} Update {}", task_id, update),
+                    &format!("Task {task_id} Update {update}"),
                 );
                 ui.update(&event);
 
@@ -466,8 +465,7 @@ async fn test_log_level_filtering() {
     ];
 
     for log_level in &log_levels {
-        let event =
-            create_test_log_event(*log_level, &format!("Message with {:?} level", log_level));
+        let event = create_test_log_event(*log_level, &format!("Message with {log_level:?} level"));
         progress_ui.update(&event);
     }
 
@@ -504,7 +502,7 @@ async fn test_event_ordering() {
 
     // Send events with small delays to maintain order
     for i in 0..5 {
-        let event = create_test_log_event(LogLevel::Info, &format!("Event {}", i));
+        let event = create_test_log_event(LogLevel::Info, &format!("Event {i}"));
         progress_ui.update(&event);
 
         // Small delay to simulate real processing
@@ -518,7 +516,7 @@ async fn test_event_ordering() {
     for (i, event) in events.iter().enumerate() {
         match event {
             ProgressEvent::Log { message, .. } => {
-                assert_eq!(message, &format!("Event {}", i));
+                assert_eq!(message, &format!("Event {i}"));
             }
             _ => panic!("Expected Log event"),
         }

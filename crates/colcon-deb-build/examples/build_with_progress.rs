@@ -6,7 +6,6 @@ use colcon_deb_build::progress_ui::{ProgressUI, ProgressUIFactory};
 use colcon_deb_build::{BuildContext, BuildState};
 use colcon_deb_config::{Config, DockerConfig};
 use colcon_deb_docker::progress::{LogLevel, ProgressEvent};
-use tracing_subscriber;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -77,7 +76,7 @@ async fn demonstrate_integration(
         description: Some("Discovering packages in workspace".to_string()),
     });
 
-    let mock_packages = vec!["package_a", "package_b", "package_c"];
+    let mock_packages = ["package_a", "package_b", "package_c"];
 
     progress_ui.update(&ProgressEvent::Log {
         level: LogLevel::Info,
@@ -114,7 +113,7 @@ async fn demonstrate_integration(
             progress_ui.update(&ProgressEvent::Progress {
                 current: step,
                 total: 4,
-                message: Some(format!("{}: {}", package, message)),
+                message: Some(format!("{package}: {message}")),
             });
 
             tokio::time::sleep(std::time::Duration::from_millis(300)).await;
