@@ -105,11 +105,11 @@ format-check:
 
 clippy:
 	@echo "$(GREEN)Running clippy...$(NC)"
-	$(CARGO) clippy --all-features $(CLIPPY_FLAGS)
+	$(CARGO) clippy --all-targets --all-features $(CLIPPY_FLAGS)
 
 clippy-fix:
 	@echo "$(GREEN)Fixing clippy warnings...$(NC)"
-	$(CARGO) clippy --fix --all-features --allow-dirty --allow-staged
+	$(CARGO) clippy --fix --all-targets --all-features --allow-dirty --allow-staged
 
 audit:
 	@echo "$(GREEN)Checking for security vulnerabilities...$(NC)"
