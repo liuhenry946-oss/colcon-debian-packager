@@ -1,0 +1,17 @@
+[package]
+name = "colcon-deb-debian"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+rust-version.workspace = true
+description = "Debian packaging for Colcon Debian Packager"
+
+[dependencies]
+colcon-deb-core = { path = "../colcon-deb-core" }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
