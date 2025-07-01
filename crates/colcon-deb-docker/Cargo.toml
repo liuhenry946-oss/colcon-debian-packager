@@ -20,6 +20,8 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 futures = "0.3"
 bytes = "1.5"
+async-trait = "0.1"
+tar = "0.4"
 
 [dev-dependencies]
 tempfile = { workspace = true }

@@ -13,9 +13,21 @@ description = "Build orchestration for Colcon Debian Packager"
 colcon-deb-core = { path = "../colcon-deb-core" }
 colcon-deb-config = { path = "../colcon-deb-config" }
 colcon-deb-docker = { path = "../colcon-deb-docker" }
+colcon-deb-debian = { path = "../colcon-deb-debian" }
+colcon-deb-ros = { path = "../colcon-deb-ros" }
 tokio = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+async-trait = "0.1"
+futures = "0.3"
+indicatif = { workspace = true }
+walkdir = { workspace = true }
+tar = "0.4"
+chrono = "0.4"
+tempfile = { workspace = true }
 
 [dev-dependencies]
 tempfile = { workspace = true }
+tracing-subscriber = { workspace = true }
