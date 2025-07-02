@@ -6,6 +6,8 @@ use clap::{Parser, Subcommand};
 use color_eyre::eyre::Result;
 use tracing_subscriber::EnvFilter;
 
+mod commands;
+
 /// Colcon Debian Packager - Build .deb packages for ROS workspaces
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -19,6 +21,10 @@ struct Cli {
     #[arg(short, long, action = clap::ArgAction::Count)]
     quiet: u8,
 
+    /// Configuration file path (global option)
+    #[arg(short, long, global = true, value_name = "FILE")]
+    config: Option<PathBuf>,
+
     #[command(subcommand)]
     command: Commands,
 }
@@ -27,10 +33,6 @@ struct Cli {
 enum Commands {
     /// Build Debian packages from a ROS workspace
     Build {
-        /// Path to configuration file
-        #[arg(short, long, value_name = "FILE")]
-        config: PathBuf,
-
         /// Override output directory
         #[arg(short, long, value_name = "DIR")]
         output: Option<PathBuf>,
@@ -38,24 +40,36 @@ enum Commands {
         /// Number of parallel jobs
         #[arg(short = 'j', long, value_name = "N")]
         jobs: Option<usize>,
+
+        /// Target architecture
+        #[arg(long, value_name = "ARCH")]
+        arch: Option<String>,
+
+        /// Skip Docker and build natively
+        #[arg(long)]
+        no_docker: bool,
+
+        /// Additional packages to install in container
+        #[arg(long, value_name = "PACKAGE")]
+        extra_packages: Vec<String>,
     },
 
-    /// Validate configuration file
+    /// Validate configuration file and workspace
     Validate {
-        /// Path to configuration file
-        #[arg(short, long, value_name = "FILE")]
-        config: PathBuf,
+        /// Check Docker availability
+        #[arg(long)]
+        check_docker: bool,
     },
 
     /// Clean build artifacts
     Clean {
-        /// Path to configuration file
-        #[arg(short, long, value_name = "FILE")]
-        config: Option<PathBuf>,
-
         /// Clean all artifacts (including cache)
         #[arg(long)]
         all: bool,
+
+        /// Also clean Docker containers and images
+        #[arg(long)]
+        docker: bool,
     },
 
     /// Initialize a new configuration file
@@ -67,10 +81,15 @@ enum Commands {
         /// Force overwrite existing file
         #[arg(short, long)]
         force: bool,
+
+        /// Initialize for specific ROS distro
+        #[arg(long, value_name = "DISTRO", default_value = "humble")]
+        ros_distro: String,
     },
 }
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     // Install color-eyre for better error reports
     color_eyre::install()?;
 
@@ -80,31 +99,38 @@ fn main() -> Result<()> {
     // Set up logging
     setup_logging(cli.verbose, cli.quiet)?;
 
+    // Determine config path
+    let config_path = cli
+        .config
+        .unwrap_or_else(|| PathBuf::from("colcon-deb.yaml"));
+
     // Handle commands
-    match cli.command {
-        Commands::Build { config, output: _, jobs: _ } => {
-            tracing::info!("Building Debian packages from {:?}", config);
-            // TODO: Implement build command
-            eprintln!("Build command not yet implemented");
+    let result = match cli.command {
+        Commands::Build { output, jobs, arch: _, no_docker: _, extra_packages: _ } => {
+            let command = commands::BuildCommand::new(config_path, output, jobs);
+            command.execute().await
         }
 
-        Commands::Validate { config } => {
-            tracing::info!("Validating configuration file {:?}", config);
-            // TODO: Implement validate command
-            eprintln!("Validate command not yet implemented");
+        Commands::Validate { check_docker: _ } => {
+            let command = commands::ValidateCommand::new(config_path);
+            command.execute().await
         }
 
-        Commands::Clean { config: _, all: _ } => {
-            tracing::info!("Cleaning build artifacts");
-            // TODO: Implement clean command
-            eprintln!("Clean command not yet implemented");
+        Commands::Clean { all, docker: _ } => {
+            let command = commands::CleanCommand::new(Some(config_path), all);
+            command.execute().await
         }
 
-        Commands::Init { output, force: _ } => {
-            tracing::info!("Initializing configuration file at {:?}", output);
-            // TODO: Implement init command
-            eprintln!("Init command not yet implemented");
+        Commands::Init { output, force, ros_distro: _ } => {
+            let command = commands::InitCommand::new(output, force);
+            command.execute().await
         }
+    };
+
+    // Handle command execution result
+    if let Err(e) = result {
+        tracing::error!("Command failed: {}", e);
+        std::process::exit(1);
     }
 
     Ok(())

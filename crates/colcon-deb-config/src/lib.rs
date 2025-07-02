@@ -78,7 +78,7 @@ impl Config {
     }
 
     /// Validate configuration
-    fn validate(&self) -> Result<()> {
+    pub fn validate(&self) -> Result<()> {
         // Check colcon_repo exists and has src directory
         if !self.colcon_repo.exists() {
             return Err(Error::ConfigError {
