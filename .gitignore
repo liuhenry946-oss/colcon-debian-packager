@@ -26,11 +26,20 @@ Thumbs.db
 *.ddeb
 *.changes
 *.buildinfo
+debian_output/
+debian_packages/
+build/
+output/
 
 # Test artifacts
 /tests/test_workspace/build/
 /tests/test_workspace/install/
 /tests/test_workspace/log/
+/tests/e2e/output/
+/tests/e2e/logs/
+/tests/e2e/benchmark_results/
+/tests/e2e/apt_repo_test/
+/tests/e2e/ros_test_workspace/
 
 # Python (for comparison with original)
 __pycache__/
