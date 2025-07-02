@@ -352,15 +352,13 @@ async fn test_exponential_backoff() {
     // Using a more conservative check of 70ms minimum
     assert!(
         total_duration >= Duration::from_millis(70),
-        "Expected at least 70ms total duration, got {:?}",
-        total_duration
+        "Expected at least 70ms total duration, got {total_duration:?}"
     );
 
     // Also check upper bound to ensure it's not taking too long
     assert!(
         total_duration <= Duration::from_millis(200),
-        "Expected at most 200ms total duration, got {:?}",
-        total_duration
+        "Expected at most 200ms total duration, got {total_duration:?}"
     );
 }
 
