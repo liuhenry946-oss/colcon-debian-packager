@@ -321,75 +321,221 @@ This document outlines the phased implementation plan for rewriting the Colcon D
 - bloom-generate integration
 - Valid APT repository
 
-## Phase 6: CLI Integration & End-to-End Testing (Weeks 11-12)
+## Phase 6: CLI Integration & End-to-End Testing (Weeks 11-14)
 
-### Goals
-- Complete CLI with all commands
-- End-to-end integration testing
-- Container image preparation
-- User documentation
+This phase is split into 4 distinct stages to ensure systematic development and thorough testing.
 
-### Work Items
+### Stage 6.1: CLI Implementation (Week 11)
+
+#### Goals
+- Complete the CLI tool with all essential commands
+- Integrate all Phase 1-5 modules into a cohesive application
+- Provide user-friendly interface and error handling
+
+#### Work Items
 
 | Task                         | Priority | Status  | Assignee | Notes              |
 |------------------------------|----------|---------|----------|--------------------|
-| **CLI Implementation**       |          |         |          |                    |
+| **CLI Foundation**           |          |         |          |                    |
 | Create crate: colcon-deb-cli | High     | ⬜ Todo |          | Binary crate       |
 | Set up clap v4 derive        | High     | ⬜ Todo |          | Command structure  |
 | Add color-eyre setup         | High     | ⬜ Todo |          | Rich errors        |
+| Configure tracing/logging    | High     | ⬜ Todo |          | Debug output       |
+| **Core Commands**            |          |         |          |                    |
 | Implement build command      | High     | ⬜ Todo |          | Main functionality |
-| Add validate command         | Medium   | ⬜ Todo |          | Config validation  |
+| Add validate command         | High     | ⬜ Todo |          | Config validation  |
 | Add clean command            | Medium   | ⬜ Todo |          | Cleanup artifacts  |
-| Add init command             | Low      | ⬜ Todo |          | Config generator   |
+| Add init command             | Medium   | ⬜ Todo |          | Config generator   |
 | **Command Options**          |          |         |          |                    |
 | Add global options           | High     | ⬜ Todo |          | -v, --config       |
 | Add output-dir option        | High     | ⬜ Todo |          | -o flag            |
-| Add parallel-jobs option     | Medium   | ⬜ Todo |          | -j flag            |
-| Add quiet/verbose modes      | Medium   | ⬜ Todo |          | -q, -vv            |
-| Generate completions         | Low      | ⬜ Todo |          | bash, zsh, fish    |
-| **Container Images**         |          |         |          |                    |
-| Create base Dockerfile       | High     | ⬜ Todo |          | ROS + Rust         |
-| Install rust-script          | High     | ⬜ Todo |          | In container       |
-| Test multi-arch builds       | High     | ⬜ Todo |          | ARM64/AMD64        |
-| Optimize image size          | Medium   | ⬜ Todo |          | Multi-stage        |
-| Push to registry             | Medium   | ⬜ Todo |          | Docker Hub         |
-| **Integration Testing**      |          |         |          |                    |
-| Wire up all modules          | High     | ⬜ Todo |          | Full pipeline      |
-| Test with test workspace     | High     | ⬜ Todo |          | Simple packages    |
-| Test with real ROS packages  | High     | ⬜ Todo |          | Complex deps       |
-| Test error scenarios         | High     | ⬜ Todo |          | Missing deps       |
-| Test cross-architecture      | High     | ⬜ Todo |          | QEMU setup         |
-| Benchmark performance        | Medium   | ⬜ Todo |          | vs Python          |
-| **Documentation**            |          |         |          |                    |
-| Update README.md             | High     | ⬜ Todo |          | Installation guide |
-| Write user guide             | High     | ⬜ Todo |          | All commands       |
-| Document configuration       | High     | ⬜ Todo |          | YAML schema        |
-| Add troubleshooting          | High     | ⬜ Todo |          | Common issues      |
-| Create migration guide       | High     | ⬜ Todo |          | From Python        |
-| Add examples                 | Medium   | ⬜ Todo |          | Use cases          |
-| **Quality Assurance**        |          |         |          |                    |
-| Full clippy pass             | High     | ⬜ Todo |          | All crates         |
-| Format all code              | High     | ⬜ Todo |          | rustfmt            |
-| Security audit               | High     | ⬜ Todo |          | cargo-audit        |
-| License check                | High     | ⬜ Todo |          | cargo-deny         |
-| Coverage report              | High     | ⬜ Todo |          | > 80%              |
-| Performance profile          | Medium   | ⬜ Todo |          | Flamegraph         |
+| Add parallel-jobs option     | High     | ⬜ Todo |          | -j flag            |
+| Add quiet/verbose modes      | High     | ⬜ Todo |          | -q, -vv            |
+| Add architecture option      | High     | ⬜ Todo |          | --arch             |
+| **Module Integration**       |          |         |          |                    |
+| Wire up ROS scanner          | High     | ⬜ Todo |          | Package discovery  |
+| Wire up Debian manager       | High     | ⬜ Todo |          | Directory prep     |
+| Wire up Docker orchestrator  | High     | ⬜ Todo |          | Container builds   |
+| Wire up Build orchestrator   | High     | ⬜ Todo |          | Pipeline exec      |
+| Add progress reporting       | High     | ⬜ Todo |          | Real-time UI       |
+| **Error Handling**           |          |         |          |                    |
+| Graceful error propagation   | High     | ⬜ Todo |          | All modules        |
+| User-friendly error messages | High     | ⬜ Todo |          | No rust backtraces |
+| Signal handling (Ctrl-C)     | High     | ⬜ Todo |          | Clean shutdown     |
+| Exit codes                   | Medium   | ⬜ Todo |          | CI integration     |
 
-### Testing Checklist
-- [ ] Build command works end-to-end
-- [ ] All rust-script helpers execute correctly
+#### Stage 6.1 Deliverables
+- Working CLI executable
+- Integration of all core modules
+- Basic documentation for CLI usage
+
+### Stage 6.2: Docker Image Preparation (Week 12)
+
+#### Goals
+- Create optimized Docker images for building ROS packages
+- Implement helper script injection into user-provided images
+- Establish container build environment setup
+
+#### Work Items
+
+| Task                           | Priority | Status  | Assignee | Notes               |
+|--------------------------------|----------|---------|----------|---------------------|
+| **Base Image Creation**        |          |         |          |                     |
+| Create base Dockerfile         | High     | ⬜ Todo |          | ROS + Rust + tools  |
+| Install rust-script            | High     | ⬜ Todo |          | Latest version      |
+| Install bloom toolchain        | High     | ⬜ Todo |          | bloom-generate      |
+| Install debian build tools     | High     | ⬜ Todo |          | dpkg-dev, lintian   |
+| Add colcon installation        | High     | ⬜ Todo |          | Latest colcon       |
+| **Helper Script Injection**    |          |         |          |                     |
+| Design injection mechanism     | High     | ⬜ Todo |          | Copy vs mount       |
+| Create setup script            | High     | ⬜ Todo |          | Environment prep    |
+| Handle permission issues       | High     | ⬜ Todo |          | User/group mapping  |
+| Test script accessibility      | High     | ⬜ Todo |          | PATH configuration  |
+| Add helper validation          | Medium   | ⬜ Todo |          | Pre-flight checks   |
+| **Multi-Architecture Support** |          |         |          |                     |
+| Test ARM64 builds              | High     | ⬜ Todo |          | Apple Silicon       |
+| Test AMD64 builds              | High     | ⬜ Todo |          | Intel/AMD           |
+| Cross-compilation setup        | Medium   | ⬜ Todo |          | QEMU emulation      |
+| Optimize for each arch         | Medium   | ⬜ Todo |          | Native performance  |
+| **Image Optimization**         |          |         |          |                     |
+| Multi-stage Dockerfile         | High     | ⬜ Todo |          | Minimize size       |
+| Cache rust-script compilation  | High     | ⬜ Todo |          | Pre-warm cache      |
+| Remove unnecessary packages    | Medium   | ⬜ Todo |          | Clean apt cache     |
+| Optimize layer ordering        | Medium   | ⬜ Todo |          | Docker efficiency   |
+| **Registry Publishing**        |          |         |          |                     |
+| Configure Docker Hub           | Medium   | ⬜ Todo |          | Public repository   |
+| Set up automated builds        | Medium   | ⬜ Todo |          | CI/CD pipeline      |
+| Tag versioning strategy        | Medium   | ⬜ Todo |          | Semantic versioning |
+| Multi-arch manifests           | Medium   | ⬜ Todo |          | Platform selection  |
+
+#### Stage 6.2 Deliverables
+- Production-ready Docker images
+- Helper script injection system
+- Multi-architecture support
+
+### Stage 6.3: End-to-End Testing & Debugging (Week 13)
+
+#### Goals
+- Test complete workflow from workspace scanning to .deb generation
+- Identify and fix bugs in the integration
+- Validate performance and reliability
+
+#### Work Items
+
+| Task                             | Priority | Status  | Assignee | Notes                |
+|----------------------------------|----------|---------|----------|----------------------|
+| **Small Workspace Testing**      |          |         |          |                      |
+| Test with test_workspace         | High     | ⬜ Todo |          | Known good packages  |
+| Verify package scanning          | High     | ⬜ Todo |          | All packages found   |
+| Test debian directory prep       | High     | ⬜ Todo |          | Custom + bloom-gen   |
+| Test container build process     | High     | ⬜ Todo |          | Full build pipeline  |
+| Verify .deb generation           | High     | ⬜ Todo |          | Valid packages       |
+| Test APT repository creation     | High     | ⬜ Todo |          | Installable repo     |
+| **Real ROS Package Testing**     |          |         |          |                      |
+| Test with geometry_msgs          | High     | ⬜ Todo |          | Simple message pkg   |
+| Test with std_msgs               | High     | ⬜ Todo |          | Common dependency    |
+| Test with complex packages       | High     | ⬜ Todo |          | Many dependencies    |
+| Test cross-package dependencies  | High     | ⬜ Todo |          | Build order          |
+| Test meta-packages               | Medium   | ⬜ Todo |          | Package groups       |
+| **Error Scenario Testing**       |          |         |          |                      |
+| Test missing dependencies        | High     | ⬜ Todo |          | Error handling       |
+| Test invalid package.xml         | High     | ⬜ Todo |          | Parse errors         |
+| Test bloom-generate failures     | High     | ⬜ Todo |          | Fallback behavior    |
+| Test container build failures    | High     | ⬜ Todo |          | Recovery mechanisms  |
+| Test disk space limitations      | Medium   | ⬜ Todo |          | Resource constraints |
+| Test network connectivity issues | Medium   | ⬜ Todo |          | Offline builds       |
+| **Performance Validation**       |          |         |          |                      |
+| Measure build time per package   | High     | ⬜ Todo |          | Performance baseline |
+| Test parallel build scaling      | High     | ⬜ Todo |          | Resource utilization |
+| Memory usage profiling           | High     | ⬜ Todo |          | Large workspaces     |
+| Container startup overhead       | Medium   | ⬜ Todo |          | Optimization targets |
+| rust-script compilation time     | Medium   | ⬜ Todo |          | Cache effectiveness  |
+| **Bug Fixing & Refinement**      |          |         |          |                      |
+| Fix discovered integration bugs  | High     | ⬜ Todo |          | Iterative debugging  |
+| Improve error messages           | High     | ⬜ Todo |          | User experience      |
+| Optimize critical paths          | Medium   | ⬜ Todo |          | Performance          |
+| Enhance logging/debugging        | Medium   | ⬜ Todo |          | Troubleshooting      |
+| **Cross-Platform Testing**       |          |         |          |                      |
+| Test on Ubuntu 22.04 (Jammy)     | High     | ⬜ Todo |          | ROS Humble target    |
+| Test on Ubuntu 24.04 (Noble)     | High     | ⬜ Todo |          | ROS Jazzy target     |
+| Test on different host systems   | Medium   | ⬜ Todo |          | macOS, Windows WSL   |
+
+#### Stage 6.3 Deliverables
+- Validated end-to-end workflow
+- Bug fixes and optimizations
+- Performance metrics and benchmarks
+
+### Stage 6.4: Documentation & Performance Benchmarking (Week 14)
+
+#### Goals
+- Comprehensive documentation for users and developers
+- Performance benchmarking against existing Python implementation
+- Production readiness verification
+
+#### Work Items
+
+| Task                            | Priority | Status  | Assignee | Notes               |
+|---------------------------------|----------|---------|----------|---------------------|
+| **User Documentation**          |          |         |          |                     |
+| Update README.md                | High     | ⬜ Todo |          | Installation guide  |
+| Write comprehensive user guide  | High     | ⬜ Todo |          | All commands        |
+| Document configuration files    | High     | ⬜ Todo |          | YAML schema         |
+| Create quick start tutorial     | High     | ⬜ Todo |          | 5-minute example    |
+| Add troubleshooting guide       | High     | ⬜ Todo |          | Common issues       |
+| Document Docker usage           | High     | ⬜ Todo |          | Container workflow  |
+| **Developer Documentation**     |          |         |          |                     |
+| Document architecture overview  | High     | ⬜ Todo |          | System design       |
+| Document rust-script helpers    | High     | ⬜ Todo |          | Helper development  |
+| Create API documentation        | Medium   | ⬜ Todo |          | Library usage       |
+| Add contribution guidelines     | Medium   | ⬜ Todo |          | Development process |
+| Document testing procedures     | Medium   | ⬜ Todo |          | CI/CD setup         |
+| **Migration Documentation**     |          |         |          |                     |
+| Create migration guide          | High     | ⬜ Todo |          | From Python version |
+| Document feature parity         | High     | ⬜ Todo |          | What's different    |
+| Compare configuration formats   | Medium   | ⬜ Todo |          | Python vs Rust      |
+| Document breaking changes       | Medium   | ⬜ Todo |          | Incompatibilities   |
+| **Performance Benchmarking**    |          |         |          |                     |
+| Benchmark vs Python colcon-deb  | High     | ⬜ Todo |          | Speed comparison    |
+| Measure memory usage            | High     | ⬜ Todo |          | Resource efficiency |
+| Test large workspace scaling    | High     | ⬜ Todo |          | 100+ packages       |
+| Measure container overhead      | Medium   | ⬜ Todo |          | vs native builds    |
+| Profile rust-script performance | Medium   | ⬜ Todo |          | Compilation time    |
+| Generate performance report     | High     | ⬜ Todo |          | Detailed analysis   |
+| **Quality Assurance**           |          |         |          |                     |
+| Full code coverage analysis     | High     | ⬜ Todo |          | Target > 80%        |
+| Security audit with cargo-audit | High     | ⬜ Todo |          | Vulnerability scan  |
+| License compliance check        | High     | ⬜ Todo |          | cargo-deny          |
+| Performance regression tests    | Medium   | ⬜ Todo |          | CI benchmarks       |
+| Code quality metrics            | Medium   | ⬜ Todo |          | Complexity analysis |
+| **Examples & Use Cases**        |          |         |          |                     |
+| Simple package example          | High     | ⬜ Todo |          | Hello world         |
+| Multi-package workspace example | High     | ⬜ Todo |          | Realistic scenario  |
+| Custom configuration examples   | Medium   | ⬜ Todo |          | Advanced usage      |
+| CI/CD integration examples      | Medium   | ⬜ Todo |          | GitHub Actions      |
+
+#### Stage 6.4 Deliverables
+- Complete documentation suite
+- Performance benchmark report
+- Production-ready release
+
+### Overall Phase 6 Testing Checklist
+- [ ] CLI commands work end-to-end
+- [ ] All rust-script helpers execute correctly in containers
 - [ ] Cross-architecture builds succeed
-- [ ] Generated packages install correctly
-- [ ] APT repository is functional
-- [ ] Performance meets targets
+- [ ] Generated .deb packages install correctly
+- [ ] APT repository is functional and installable
+- [ ] Performance meets or exceeds Python version
+- [ ] Documentation is comprehensive and accurate
+- [ ] Error handling is robust and user-friendly
 
-### Deliverables
+### Overall Phase 6 Deliverables
 - Complete CLI application
-- Docker images with Rust support
+- Optimized Docker images with helper injection
 - Comprehensive documentation
-- Full test coverage
+- Performance benchmark report
+- Production-ready system
 
-## Phase 7: Optimization, Polish & Release (Weeks 13-14)
+## Phase 7: Optimization, Polish & Release (Weeks 15-16)
 
 ### Goals
 - Performance optimization
@@ -399,43 +545,43 @@ This document outlines the phased implementation plan for rewriting the Colcon D
 
 ### Work Items
 
-| Task | Priority | Status | Assignee | Notes |
-|------|----------|--------|----------|--------|
-| **Performance Optimization** |
-| Profile build pipeline | High | ⬜ Todo | | Identify bottlenecks |
-| Optimize rust-script caching | High | ⬜ Todo | | Pre-warm cache |
-| Parallel package builds | High | ⬜ Todo | | Resource utilization |
-| Minimize Docker layers | Medium | ⬜ Todo | | Image optimization |
-| Benchmark vs Python | High | ⬜ Todo | | Performance report |
-| Memory usage analysis | Medium | ⬜ Todo | | Large workspaces |
-| **rust-script Optimization** |
-| Pre-compile helpers | High | ⬜ Todo | | In base image |
-| Cache compiled scripts | High | ⬜ Todo | | Volume mount |
-| Minimize dependencies | Medium | ⬜ Todo | | Faster compilation |
-| Test incremental builds | Medium | ⬜ Todo | | Development flow |
-| **Feature Completeness** |
-| GPG signing support | Medium | ⬜ Todo | | Repository signing |
-| Meta-package support | Medium | ⬜ Todo | | Package groups |
-| Multi-distro support | Low | ⬜ Todo | | Ubuntu versions |
-| Custom hooks | Low | ⬜ Todo | | User scripts |
-| **Quality & Security** |
-| Security audit | High | ⬜ Todo | | All dependencies |
-| Container security scan | High | ⬜ Todo | | Image vulnerabilities |
-| SBOM generation | Medium | ⬜ Todo | | Supply chain |
-| Penetration testing | Low | ⬜ Todo | | Security review |
-| **Release Preparation** |
-| Create release binaries | High | ⬜ Todo | | Multiple platforms |
-| Package for distributions | High | ⬜ Todo | | .deb, .rpm |
-| Container image tags | High | ⬜ Todo | | Version tags |
-| Generate changelog | High | ⬜ Todo | | From commits |
-| Update all documentation | High | ⬜ Todo | | Final review |
-| Create release notes | High | ⬜ Todo | | Feature highlights |
-| **Final Testing** |
-| Full regression test | High | ⬜ Todo | | All features |
-| Cross-platform test | High | ⬜ Todo | | Linux distros |
-| Stress testing | Medium | ⬜ Todo | | Large repos |
-| User acceptance test | High | ⬜ Todo | | Real workflows |
-| Performance validation | High | ⬜ Todo | | Meets targets |
+| Task                         | Priority | Status  | Assignee | Notes                 |
+|------------------------------|----------|---------|----------|-----------------------|
+| **Performance Optimization** |          |         |          |                       |
+| Profile build pipeline       | High     | ⬜ Todo |          | Identify bottlenecks  |
+| Optimize rust-script caching | High     | ⬜ Todo |          | Pre-warm cache        |
+| Parallel package builds      | High     | ⬜ Todo |          | Resource utilization  |
+| Minimize Docker layers       | Medium   | ⬜ Todo |          | Image optimization    |
+| Benchmark vs Python          | High     | ⬜ Todo |          | Performance report    |
+| Memory usage analysis        | Medium   | ⬜ Todo |          | Large workspaces      |
+| **rust-script Optimization** |          |         |          |                       |
+| Pre-compile helpers          | High     | ⬜ Todo |          | In base image         |
+| Cache compiled scripts       | High     | ⬜ Todo |          | Volume mount          |
+| Minimize dependencies        | Medium   | ⬜ Todo |          | Faster compilation    |
+| Test incremental builds      | Medium   | ⬜ Todo |          | Development flow      |
+| **Feature Completeness**     |          |         |          |                       |
+| GPG signing support          | Medium   | ⬜ Todo |          | Repository signing    |
+| Meta-package support         | Medium   | ⬜ Todo |          | Package groups        |
+| Multi-distro support         | Low      | ⬜ Todo |          | Ubuntu versions       |
+| Custom hooks                 | Low      | ⬜ Todo |          | User scripts          |
+| **Quality & Security**       |          |         |          |                       |
+| Security audit               | High     | ⬜ Todo |          | All dependencies      |
+| Container security scan      | High     | ⬜ Todo |          | Image vulnerabilities |
+| SBOM generation              | Medium   | ⬜ Todo |          | Supply chain          |
+| Penetration testing          | Low      | ⬜ Todo |          | Security review       |
+| **Release Preparation**      |          |         |          |                       |
+| Create release binaries      | High     | ⬜ Todo |          | Multiple platforms    |
+| Package for distributions    | High     | ⬜ Todo |          | .deb, .rpm            |
+| Container image tags         | High     | ⬜ Todo |          | Version tags          |
+| Generate changelog           | High     | ⬜ Todo |          | From commits          |
+| Update all documentation     | High     | ⬜ Todo |          | Final review          |
+| Create release notes         | High     | ⬜ Todo |          | Feature highlights    |
+| **Final Testing**            |          |         |          |                       |
+| Full regression test         | High     | ⬜ Todo |          | All features          |
+| Cross-platform test          | High     | ⬜ Todo |          | Linux distros         |
+| Stress testing               | Medium   | ⬜ Todo |          | Large repos           |
+| User acceptance test         | High     | ⬜ Todo |          | Real workflows        |
+| Performance validation       | High     | ⬜ Todo |          | Meets targets         |
 
 ### Testing Checklist
 - [ ] All tests pass on CI
