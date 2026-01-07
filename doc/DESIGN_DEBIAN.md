@@ -121,6 +121,12 @@ else
     
     # Save generated debian dir back to collection (as user)
     if [ -d "$PACKAGE_PATH/debian" ]; then
+        # Post-process debian/control to enforce agiros naming
+        if [ -f "$PACKAGE_PATH/debian/control" ]; then
+            sed -i "s/Package: ros-$ROS_DISTRO-/Package: agiros-$ROS_DISTRO-/g" "$PACKAGE_PATH/debian/control"
+            sed -i "s/Source: ros-$ROS_DISTRO-/Source: agiros-$ROS_DISTRO-/g" "$PACKAGE_PATH/debian/control"
+        fi
+
         mkdir -p "$DEBIAN_DIRS/$PACKAGE_NAME"
         cp -r "$PACKAGE_PATH/debian" "$DEBIAN_DIRS/$PACKAGE_NAME/"
         echo "Saved generated debian directory to collection"
@@ -202,7 +208,7 @@ impl PartialOrd for DebianVersion {
 
 ```rust
 pub struct DependencyMapper {
-    rosdep_db: RosdepDatabase,
+    agirosdep_db: agirosdepDatabase,
     package_map: HashMap<String, String>,
 }
 
@@ -222,8 +228,8 @@ impl DependencyMapper {
             });
         }
         
-        // Look up in rosdep
-        if let Ok(system_dep) = self.rosdep_db.lookup(&dep.name) {
+        // Look up in agirosdep
+        if let Ok(system_dep) = self.agirosdep_db.lookup(&dep.name) {
             return Some(DebianDependency {
                 package: system_dep.debian_package,
                 version_constraint: None,

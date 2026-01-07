@@ -36,7 +36,7 @@ impl DebianManager {
         Self {
             debian_dirs: debian_dirs.into(),
             version_handler: VersionHandler::new(),
-            dependency_mapper: DependencyMapper::for_humble(), // Default to Humble
+            dependency_mapper: DependencyMapper::for_loong(), // Default to loong
             validator: DebianValidator::new(false),
             strict_validation: false,
         }
@@ -263,7 +263,31 @@ impl DebianManager {
             ));
         }
 
+        // Post-process debian/control to enforce agiros naming
+        self.post_process_control_file(target_dir, &self.dependency_mapper.ros_distro_name())?;
+
         info!("Successfully generated debian directory for {} using bloom", package.name);
+        Ok(())
+    }
+
+    /// Post-process debian/control to replace ros- prefix with agiros-
+    fn post_process_control_file(&self, target_dir: &Path, distro: &str) -> Result<()> {
+        let control_path = target_dir.join("debian/control");
+        if !control_path.exists() {
+            return Ok(());
+        }
+
+        let content = std::fs::read_to_string(&control_path)?;
+        let ros_prefix = format!("ros-{}-", distro);
+        let agiros_prefix = format!("agiros-{}-", distro);
+
+        // Replace Package: ros-distro-name and Source: ros-distro-name
+        let new_content = content
+            .replace(&format!("Package: {}", ros_prefix), &format!("Package: {}", agiros_prefix))
+            .replace(&format!("Source: {}", ros_prefix), &format!("Source: {}", agiros_prefix));
+
+        std::fs::write(control_path, new_content)?;
+        debug!("Post-processed debian/control to use agiros naming");
         Ok(())
     }
 
@@ -434,7 +458,7 @@ mod tests {
         let ros_deps = vec!["std_msgs".to_string(), "cmake".to_string()];
         let debian_deps = manager.map_dependencies(&ros_deps).unwrap();
 
-        assert!(debian_deps.contains(&"ros-humble-std-msgs".to_string()));
+        assert!(debian_deps.contains(&"agiros-loong-std-msgs".to_string()));
         assert!(debian_deps.contains(&"cmake".to_string()));
     }
 

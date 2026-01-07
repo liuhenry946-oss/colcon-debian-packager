@@ -18,7 +18,7 @@ NC='\033[0m'
 TEST_WORKSPACE="${TEST_WORKSPACE:-$PROJECT_ROOT/test_workspace}"
 OUTPUT_DIR="${OUTPUT_DIR:-$SCRIPT_DIR/output}"
 LOG_DIR="${LOG_DIR:-$SCRIPT_DIR/logs}"
-ROS_DISTRO="${ROS_DISTRO:-humble}"
+ROS_DISTRO="${ROS_DISTRO:-loong}"
 USE_DOCKER="${USE_DOCKER:-true}"
 
 # Test results
@@ -192,7 +192,7 @@ test_docker_env() {
     
     # Run basic Docker test
     docker run --rm "colcon-deb:$ROS_DISTRO-fast" bash -c "
-        echo 'ROS Distro: $ROS_DISTRO'
+        echo 'AGIROS Distro: $ROS_DISTRO'
         rustc --version
         python3 --version
         dpkg-buildpackage --version | head -n1
@@ -268,7 +268,7 @@ main() {
     echo "=================================="
     echo "Test workspace: $TEST_WORKSPACE"
     echo "Output directory: $OUTPUT_DIR"
-    echo "ROS distro: $ROS_DISTRO"
+    echo "AGIROS distro: $ROS_DISTRO"
     echo "Use Docker: $USE_DOCKER"
     echo
     

@@ -18,8 +18,8 @@ fn main() {
         ("apt-ftparchive", "APT repository metadata generator"),
         ("rustc", "Rust compiler"),
         ("cargo", "Rust package manager"),
-        ("colcon", "ROS build tool"),
-        ("rosdep", "ROS dependency manager"),
+        ("colcon", "AGIROS build tool"),
+        ("agirosdep", "AGIROS dependency manager"),
     ];
     
     let mut missing_tools = Vec::new();
@@ -58,7 +58,7 @@ fn main() {
     
     // Check ROS environment
     match std::env::var("ROS_DISTRO") {
-        Ok(distro) => println!("ROS distribution: {}", distro),
+        Ok(distro) => println!("AGIROS distribution: {}", distro),
         Err(_) => {
             eprintln!("\nWarning: ROS_DISTRO environment variable not set");
             eprintln!("Make sure to source the ROS setup script");

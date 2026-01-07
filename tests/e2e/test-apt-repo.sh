@@ -49,7 +49,7 @@ create_dummy_packages() {
         
         # Create control file
         cat > "$pkg_dir/DEBIAN/control" <<EOF
-Package: ros-humble-$pkg
+Package: agiros-loong-$pkg
 Version: 1.0.0-1
 Section: misc
 Priority: optional
@@ -60,11 +60,11 @@ Description: Test package $pkg
 EOF
         
         # Create some dummy content
-        mkdir -p "$pkg_dir/opt/ros/humble/lib"
-        echo "Test content for $pkg" > "$pkg_dir/opt/ros/humble/lib/$pkg.txt"
+        mkdir -p "$pkg_dir/opt/agiros/loong/lib"
+        echo "Test content for $pkg" > "$pkg_dir/opt/agiros/loong/lib/$pkg.txt"
         
         # Build the package
-        dpkg-deb --build "$pkg_dir" "$TEST_DIR/packages/ros-humble-${pkg}_1.0.0-1_amd64.deb"
+        dpkg-deb --build "$pkg_dir" "$TEST_DIR/packages/agiros-loong-${pkg}_1.0.0-1_amd64.deb"
     done
     
     success "Created $(ls -1 "$TEST_DIR/packages"/*.deb | wc -l) test packages"

@@ -4,7 +4,7 @@
 set -e
 
 # Default values
-ROS_DISTRO="${ROS_DISTRO:-humble}"
+ROS_DISTRO="${ROS_DISTRO:-loong}"
 WORKSPACE="${WORKSPACE:-$(pwd)}"
 OUTPUT_DIR="${OUTPUT_DIR:-$(pwd)/debian_output}"
 HELPERS_DIR="${HELPERS_DIR:-$(dirname "$0")/../scripts/helpers}"
@@ -26,7 +26,7 @@ Usage: $0 [OPTIONS] [COMMAND]
 Run colcon-deb in a Docker container with proper environment setup.
 
 Options:
-    -d, --distro DISTRO      ROS distribution (default: humble)
+    -d, --distro DISTRO      ROS distribution (default: loong)
     -w, --workspace PATH     Workspace path (default: current directory)
     -o, --output PATH        Output directory for .deb files (default: ./debian_output)
     -a, --arch ARCH          Target architecture (default: host architecture)
@@ -35,7 +35,7 @@ Options:
     -h, --help               Show this help message
 
 Examples:
-    # Run interactive shell in humble container
+    # Run interactive shell in loong container
     $0
 
     # Build packages in iron container

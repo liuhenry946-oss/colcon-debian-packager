@@ -24,7 +24,7 @@ Main test runner that executes all end-to-end tests:
 - `TEST_WORKSPACE`: Path to test workspace (default: project test_workspace)
 - `OUTPUT_DIR`: Test output directory (default: ./output)
 - `LOG_DIR`: Test logs directory (default: ./logs)
-- `ROS_DISTRO`: ROS distribution to test (default: humble)
+- `ROS_DISTRO`: ROS distribution to test (default: loong)
 - `USE_DOCKER`: Whether to test Docker functionality (default: true)
 
 ### 2. `benchmark.sh`

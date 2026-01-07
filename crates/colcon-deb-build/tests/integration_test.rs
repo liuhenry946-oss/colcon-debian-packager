@@ -14,8 +14,8 @@ async fn test_build_orchestrator_creation() {
     let config = Config {
         colcon_repo: workspace,
         debian_dirs: temp_dir.path().join("debian"),
-        docker: colcon_deb_config::DockerConfig::Image { image: "ros:humble".to_string() },
-        ros_distro: Some("humble".to_string()),
+        docker: colcon_deb_config::DockerConfig::Image { image: "ros:loong".to_string() },
+        ros_distro: Some("loong".to_string()),
         output_dir: temp_dir.path().join("output"),
         parallel_jobs: 1,
     };
@@ -46,8 +46,8 @@ fn test_build_context() {
     let config = Config {
         colcon_repo: temp_dir.path().join("workspace"),
         debian_dirs: temp_dir.path().join("debian"),
-        docker: colcon_deb_config::DockerConfig::Image { image: "ros:humble".to_string() },
-        ros_distro: Some("humble".to_string()),
+        docker: colcon_deb_config::DockerConfig::Image { image: "ros:loong".to_string() },
+        ros_distro: Some("loong".to_string()),
         output_dir: temp_dir.path().join("output"),
         parallel_jobs: 4,
     };
@@ -80,7 +80,7 @@ fn test_artifact_parsing() {
     use colcon_deb_build::BuildArtifact;
 
     // Test parsing a valid .deb filename
-    let path = Path::new("/tmp/ros-humble-example-msgs_0.1.0-1_amd64.deb");
+    let path = Path::new("/tmp/agiros-loong-example-msgs_0.1.0-1_amd64.deb");
     let artifact = BuildArtifact::from_path(path);
 
     // Since this requires the file to exist, it will return None
@@ -94,14 +94,14 @@ fn test_executor_config() {
     use colcon_deb_build::ExecutorConfig;
 
     let config = ExecutorConfig {
-        container_image: "ros:humble".to_string(),
+        container_image: "ros:loong".to_string(),
         workspace_path: PathBuf::from("/workspace"),
         output_dir: PathBuf::from("/output"),
         parallel_jobs: 4,
         timeout_seconds: Some(3600),
     };
 
-    assert_eq!(config.container_image, "ros:humble");
+    assert_eq!(config.container_image, "ros:loong");
     assert_eq!(config.parallel_jobs, 4);
     assert_eq!(config.timeout_seconds, Some(3600));
 }

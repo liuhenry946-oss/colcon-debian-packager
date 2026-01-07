@@ -24,21 +24,21 @@ cd /workspace || report_error "Failed to change to workspace directory"
 
 # Source ROS environment
 log "info" "Setting up ROS environment"
-if [ -f /opt/ros/$ROS_DISTRO/setup.bash ]; then
-    source /opt/ros/$ROS_DISTRO/setup.bash
+if [ -f /opt/agiros/$ROS_DISTRO/setup.bash ]; then
+    source /opt/agiros/$ROS_DISTRO/setup.bash
 else
-    report_error "ROS environment not found for distro: $ROS_DISTRO"
+    report_error "AGIROS environment not found for distro: $ROS_DISTRO"
 fi
 
-# Initialize rosdep if needed
+# Initialize agirosdep if needed
 report_stage "dependencies"
-log "info" "Initializing rosdep"
-sudo rosdep init 2>/dev/null || true
-rosdep update
+log "info" "Initializing agirosdep"
+sudo agirosdep init 2>/dev/null || true
+agirosdep update
 
 # Install dependencies
 log "info" "Installing ROS dependencies"
-sudo rosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO || {
+sudo agirosdep install --from-paths src --ignore-src -y --rosdistro $ROS_DISTRO || {
     log "warning" "Some dependencies could not be installed, continuing anyway"
 }
 
@@ -126,6 +126,13 @@ elif [ -f /helpers/build-orchestrator.rs ]; then
             
             # Save generated debian directory
             if [ -d "$TARGET_DEBIAN" ]; then
+                # Post-process debian/control to enforce agiros naming
+                if [ -f "$TARGET_DEBIAN/control" ]; then
+                    sed -i "s/Package: ros-$ROS_DISTRO-/Package: agiros-$ROS_DISTRO-/g" "$TARGET_DEBIAN/control"
+                    sed -i "s/Source: ros-$ROS_DISTRO-/Source: agiros-$ROS_DISTRO-/g" "$TARGET_DEBIAN/control"
+                    log "info" "Updated debian/control to use agiros-$ROS_DISTRO- prefix"
+                fi
+
                 mkdir -p "/workspace/debian_dirs/$PKG_NAME"
                 cp -r "$TARGET_DEBIAN" "/workspace/debian_dirs/$PKG_NAME/"
                 log "info" "Saved generated debian directory for $PKG_NAME"

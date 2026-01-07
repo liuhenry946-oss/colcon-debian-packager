@@ -6,7 +6,7 @@ This document details the design of the ROS package handling component (`colcon-
 
 The ROS package handling layer provides data structures and parsing logic used by both host and container sides:
 - **Host Side**: Parses package.xml for planning and validation
-- **Container Side**: Uses the actual ROS tools (rosdep, colcon) for building
+- **Container Side**: Uses the actual ROS tools (agirosdep, colcon) for building
 
 This crate primarily defines the **data models** and **parsing logic**, while actual ROS operations happen inside the container.
 
@@ -180,21 +180,21 @@ impl DependencyType {
 }
 ```
 
-### 3. Rosdep Integration
+### 3. agirosdep Integration
 
 ```rust
 use tokio::process::Command;
 
-pub struct RosdepResolver {
+pub struct agirosdepResolver {
     ros_distro: String,
     os_name: String,
     os_version: String,
 }
 
-impl RosdepResolver {
+impl agirosdepResolver {
     pub async fn resolve(&self, ros_dep: &str) -> Result<SystemDependency> {
-        // Use rosdep command directly
-        let output = Command::new("rosdep")
+        // Use agirosdep command directly
+        let output = Command::new("agirosdep")
             .args(&[
                 "resolve",
                 ros_dep,
@@ -204,13 +204,13 @@ impl RosdepResolver {
             .output()
             .await?;
         
-        // Parse rosdep output
-        self.parse_rosdep_output(&output.stdout)
+        // Parse agirosdep output
+        self.parse_agirosdep_output(&output.stdout)
     }
     
     pub async fn install_dependencies(&self, workspace: &Path) -> Result<()> {
-        // Let rosdep handle the complexity
-        Command::new("rosdep")
+        // Let agirosdep handle the complexity
+        Command::new("agirosdep")
             .args(&[
                 "install",
                 "--from-paths", workspace.to_str().unwrap(),
@@ -424,7 +424,7 @@ pub enum DependencyError {
         found: String,
     },
     
-    #[error("Rosdep lookup failed")]
-    RosdepLookup(#[from] RosdepError),
+    #[error("agirosdep lookup failed")]
+    agirosdepLookup(#[from] agirosdepError),
 }
 ```

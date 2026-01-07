@@ -29,8 +29,8 @@ fn create_mock_config() -> Config {
     Config {
         colcon_repo: PathBuf::from("/tmp/mock_workspace"),
         debian_dirs: PathBuf::from("/tmp/mock_debian"),
-        docker: DockerConfig::Image { image: "ros:humble".to_string() },
-        ros_distro: Some("humble".to_string()),
+        docker: DockerConfig::Image { image: "ros:loong".to_string() },
+        ros_distro: Some("loong".to_string()),
         output_dir: PathBuf::from("/tmp/mock_output"),
         parallel_jobs: 4,
     }

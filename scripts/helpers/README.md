@@ -31,8 +31,8 @@ The `debian-preparer.rs` script automates the process of preparing `debian/` dir
   --package-path "/ws/src/geometry_msgs" \
   --package-version "4.2.3" \
   --debian-dirs "/ws/debian_dirs" \
-  --ros-distro "humble" \
-  --maintainer "ROS Team <ros@example.com>" \
+  --ros-distro "loong" \
+  --maintainer "AGIROS Team <ros@example.com>" \
   --use-bloom true \
   --validate true \
   --json-output true
@@ -46,7 +46,7 @@ The `debian-preparer.rs` script automates the process of preparing `debian/` dir
 | `--package-path`     | `-s`  | ✓        | -        | Path to the package source directory        |
 | `--package-version`  | `-v`  | ✓        | -        | Version of the package                      |
 | `--debian-dirs`      | `-d`  | ✓        | -        | Path to debian directories collection       |
-| `--ros-distro`       | `-r`  | ✗        | `humble` | ROS distribution name                       |
+| `--ros-distro`       | `-r`  | ✗        | `loong` | ROS distribution name                       |
 | `--maintainer`       | `-m`  | ✗        | -        | Maintainer information                      |
 | `--use-bloom`        |       | ✗        | `true`   | Use bloom-generate for missing directories  |
 | `--force-regenerate` |       | ✗        | `false`  | Force regeneration even if custom exists    |
@@ -168,7 +168,7 @@ The script automatically maps ROS distributions to Ubuntu versions:
 
 | ROS Distro       | Ubuntu Version    |
 |------------------|-------------------|
-| `humble`, `iron` | `jammy` (22.04)   |
-| `jazzy`          | `noble` (24.04)   |
+| `loong`, `iron` | `jammy` (22.04)   |
+| `pixiu`          | `noble` (24.04)   |
 | `rolling`        | `noble` (24.04)   |
 | Others           | `jammy` (default) |

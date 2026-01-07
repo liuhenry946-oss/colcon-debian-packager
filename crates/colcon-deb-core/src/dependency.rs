@@ -51,16 +51,16 @@ impl Dependency {
         }
     }
 
-    /// Convert to Debian package name format (e.g., ros-humble-foo)
+    /// Convert to Debian package name format (e.g., agiros-loong-foo)
     pub fn to_debian_name(&self, ros_distro: &str) -> String {
-        // System packages (rosdep keys) typically have hyphens and don't follow ROS
+        // System packages (agirosdep keys) typically have hyphens and don't follow ROS
         // naming
         if self.name.contains('-') && !self.name.starts_with("ros-") {
-            // Handle rosdep keys like "python3-numpy", "libboost-dev", etc.
+            // Handle agirosdep keys like "python3-numpy", "libboost-dev", etc.
             self.name.clone()
         } else {
-            // ROS package names become ros-${distro}-${name}
-            format!("ros-{}-{}", ros_distro, self.name.replace('_', "-"))
+            // ROS package names become agiros-${distro}-${name}
+            format!("agiros-{}-{}", ros_distro, self.name.replace('_', "-"))
         }
     }
 
@@ -121,18 +121,18 @@ mod tests {
     #[test]
     fn test_dependency_to_debian_name() {
         let dep = Dependency::new("std_msgs");
-        assert_eq!(dep.to_debian_name("humble"), "ros-humble-std-msgs");
+        assert_eq!(dep.to_debian_name("loong"), "agiros-loong-std-msgs");
 
         let dep = Dependency::new("python3-numpy");
-        assert_eq!(dep.to_debian_name("humble"), "python3-numpy");
+        assert_eq!(dep.to_debian_name("loong"), "python3-numpy");
     }
 
     #[test]
     fn test_dependency_to_debian_string() {
         let dep = Dependency::new("rclcpp");
-        assert_eq!(dep.to_debian_dependency("humble"), "ros-humble-rclcpp");
+        assert_eq!(dep.to_debian_dependency("loong"), "agiros-loong-rclcpp");
 
         let dep = Dependency::with_min_version("rclcpp", "1.0.0");
-        assert_eq!(dep.to_debian_dependency("humble"), "ros-humble-rclcpp (>= 1.0.0)");
+        assert_eq!(dep.to_debian_dependency("loong"), "agiros-loong-rclcpp (>= 1.0.0)");
     }
 }

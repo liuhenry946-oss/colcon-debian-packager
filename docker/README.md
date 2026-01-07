@@ -5,8 +5,8 @@ This directory contains Docker configurations for building ROS packages with col
 ## Quick Start
 
 ```bash
-# Build Docker image for ROS Humble
-./build-images.sh --distro humble
+# Build Docker image for ROS loong
+./build-images.sh --distro loong
 
 # Run colcon-deb in container
 ./run-colcon-deb.sh colcon-deb build
@@ -34,7 +34,7 @@ docker/
 ## Features
 
 ### 1. Pre-configured Build Environment
-- ROS (Humble, Iron, Rolling)
+- ROS (loong, Iron, Rolling)
 - Rust toolchain with rust-script
 - Debian packaging tools (dpkg-dev, debhelper, lintian)
 - bloom for ROS package generation
@@ -109,11 +109,11 @@ colcon-deb --help
 Use Docker Compose for persistent development:
 
 ```bash
-# Start Humble container
-docker-compose up -d colcon-deb-humble
+# Start loong container
+docker-compose up -d colcon-deb-loong
 
 # Execute commands
-docker-compose exec colcon-deb-humble colcon-deb build
+docker-compose exec colcon-deb-loong colcon-deb build
 
 # Stop container
 docker-compose down
@@ -123,7 +123,7 @@ docker-compose down
 
 ### Single Distribution
 ```bash
-./build-images.sh --distro humble
+./build-images.sh --distro loong
 ```
 
 ### All Distributions
@@ -146,7 +146,7 @@ Test cross-platform builds:
 
 ## Environment Variables
 
-- `ROS_DISTRO` - ROS distribution (humble, iron, rolling)
+- `ROS_DISTRO` - ROS distribution (loong, iron, rolling)
 - `LOCAL_USER_ID` - Host user ID for permission mapping
 - `INJECT_HELPERS` - Enable helper script injection (true/false)
 - `TARGET_ARCHITECTURE` - Target build architecture
@@ -170,10 +170,10 @@ LOCAL_USER_ID=$(id -u) ./run-colcon-deb.sh
 If tools are not found in container:
 ```bash
 # Rebuild image
-./build-images.sh --distro humble
+./build-images.sh --distro loong
 
 # Check tool installation
-docker run --rm colcon-deb:humble which rust-script
+docker run --rm colcon-deb:loong which rust-script
 ```
 
 ### Build Failures
@@ -183,7 +183,7 @@ For build issues:
 ./run-colcon-deb.sh colcon-deb build -vv
 
 # Check container logs
-docker-compose logs colcon-deb-humble
+docker-compose logs colcon-deb-loong
 ```
 
 ## Customization
@@ -206,7 +206,7 @@ RUN apt-get update && apt-get install -y \
 Add to `build-images.sh`:
 ```bash
 declare -A ROS_DISTROS=(
-    ["humble"]="ubuntu:22.04"
+    ["loong"]="ubuntu:22.04"
     ["your-distro"]="ubuntu:24.04"
 )
 ```

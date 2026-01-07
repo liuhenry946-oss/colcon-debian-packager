@@ -31,8 +31,8 @@ fn create_bench_config() -> Config {
     Config {
         colcon_repo: workspace,
         debian_dirs: temp_dir.path().join("debian"),
-        docker: DockerConfig::Image { image: "ros:humble".to_string() },
-        ros_distro: Some("humble".to_string()),
+        docker: DockerConfig::Image { image: "ros:loong".to_string() },
+        ros_distro: Some("loong".to_string()),
         output_dir: temp_dir.path().join("output"),
         parallel_jobs: 4,
     }

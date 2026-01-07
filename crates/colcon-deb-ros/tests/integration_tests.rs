@@ -163,16 +163,16 @@ fn test_dependency_mapping() {
 
     // Test ROS package name mapping
     let ros_dep = Dependency::new("simple_publisher");
-    assert_eq!(ros_dep.to_debian_name("humble"), "ros-humble-simple-publisher");
+    assert_eq!(ros_dep.to_debian_name("loong"), "agiros-loong-simple-publisher");
 
     // Test system package name (with hyphen)
     let system_dep = Dependency::new("libboost-system-dev");
-    assert_eq!(system_dep.to_debian_name("humble"), "libboost-system-dev");
+    assert_eq!(system_dep.to_debian_name("loong"), "libboost-system-dev");
 
     let python_dep = Dependency::new("python3-numpy");
-    assert_eq!(python_dep.to_debian_name("humble"), "python3-numpy");
+    assert_eq!(python_dep.to_debian_name("loong"), "python3-numpy");
 
     // Test underscores in ROS packages
     let underscore_dep = Dependency::new("sensor_msgs");
-    assert_eq!(underscore_dep.to_debian_name("humble"), "ros-humble-sensor-msgs");
+    assert_eq!(underscore_dep.to_debian_name("loong"), "agiros-loong-sensor-msgs");
 }

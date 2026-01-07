@@ -106,12 +106,12 @@ colcon_repo: /path/to/ros/workspace    # Input Colcon repository
 debian_dirs: /path/to/debian/configs   # Collection of package debian/ dirs
 docker:
   # Option 1: Use existing image
-  image: ros:humble-ros-base
+  image: ros:loong-ros-base
   # Option 2: Build from Dockerfile
   dockerfile: /path/to/Dockerfile
 
 # Optional configuration
-ros_distro: humble                      # ROS distribution (can auto-detect)
+ros_distro: loong                      # ROS distribution (can auto-detect)
 output_dir: ./output                    # Where to place .deb files
 parallel_jobs: 4                        # Build parallelism
 ```
@@ -336,9 +336,9 @@ tests/test_workspace/
 **Container-Side Commands (Shell Scripts):**
 ```bash
 # ROS commands
-- rosdep update/install: Dependency resolution
+- agirosdep update/install: Dependency resolution
 - colcon build: Package compilation
-- ros2 pkg list: Package discovery
+- agiros pkg list: Package discovery
 
 # Debian commands
 - dpkg-deb --build: Package creation
@@ -366,7 +366,7 @@ useradd -u $HOST_UID -g $HOST_GID -m -s /bin/bash builder 2>/dev/null || true
 # Configure passwordless sudo for required commands
 cat > /etc/sudoers.d/builder << EOF
 builder ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/apt-cache, \
-                           /usr/bin/rosdep, /usr/bin/dpkg, /usr/bin/dpkg-deb
+                           /usr/bin/agirosdep, /usr/bin/dpkg, /usr/bin/dpkg-deb
 EOF
 
 # Fix ownership of workspace
@@ -381,12 +381,12 @@ exec su - builder -c "/scripts/main.sh"
 # /scripts/main.sh - Main build script (runs as non-root user)
 
 # 1. Setup environment
-source /opt/ros/$ROS_DISTRO/setup.bash
+source /opt/agiros/$ROS_DISTRO/setup.bash
 
 # 2. Install dependencies (requires sudo)
-sudo rosdep init || true  # May already be initialized
-rosdep update  # Runs as user
-sudo rosdep install --from-paths src --ignore-src -y
+sudo agirosdep init || true  # May already be initialized
+agirosdep update  # Runs as user
+sudo agirosdep install --from-paths src --ignore-src -y
 
 # 3. Build packages (as user) - colcon handles all dependency ordering
 colcon build --merge-install --parallel-workers $PARALLEL_JOBS

@@ -1,6 +1,6 @@
 # Fast Dockerfile for colcon-deb build environment
-# Supports ROS Humble on Ubuntu 22.04 (Jammy)
-ARG BASE_IMAGE=ros:humble-ros-base
+# Supports ROS loong on Ubuntu 22.04 (Jammy)
+ARG BASE_IMAGE=ros:loong-ros-base
 FROM ${BASE_IMAGE}
 
 # Avoid interactive prompts during package installation
@@ -21,8 +21,6 @@ RUN apt-get update && apt-get install -y \
     dh-make \
     # Python and ROS tools
     python3-pip \
-    python3-bloom \
-    python3-rosdep \
     python3-colcon-common-extensions \
     # Version control
     git \
@@ -31,6 +29,9 @@ RUN apt-get update && apt-get install -y \
     wget \
     sudo \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip install http://1.94.193.239/yumrepo/agiros/agirosdep/bloom-0.13.0-py3-none-any.whl
+RUN pip install http://1.94.193.239/yumrepo/agiros/agirosdep/agirosdep-0.25.1-py3-none-any.whl
 
 # Install Rust (we'll install rust-script on demand)
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
@@ -49,7 +50,7 @@ WORKDIR /workspace
 
 # Labels
 LABEL maintainer="colcon-deb"
-LABEL description="Fast build environment for colcon-deb with ROS Humble"
+LABEL description="Fast build environment for colcon-deb with ROS loong"
 LABEL version="1.0-fast"
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

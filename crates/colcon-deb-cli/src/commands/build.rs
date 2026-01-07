@@ -13,6 +13,7 @@ pub struct BuildCommand {
     config_path: PathBuf,
     output_dir: Option<PathBuf>,
     parallel_jobs: Option<usize>,
+    agiros_distro: Option<String>,
 }
 
 impl BuildCommand {
@@ -20,8 +21,9 @@ impl BuildCommand {
         config_path: PathBuf,
         output_dir: Option<PathBuf>,
         parallel_jobs: Option<usize>,
+        agiros_distro: Option<String>,
     ) -> Self {
-        Self { config_path, output_dir, parallel_jobs }
+        Self { config_path, output_dir, parallel_jobs, agiros_distro }
     }
 
     pub async fn execute(&self) -> Result<()> {
@@ -39,82 +41,32 @@ impl BuildCommand {
         if let Some(jobs) = self.parallel_jobs {
             config.parallel_jobs = jobs;
         }
+        if let Some(distro) = &self.agiros_distro {
+            config.ros_distro = Some(distro.clone());
+        }
 
         println!("✓ Configuration loaded and validated");
+        info!("Output directory: {}", config.output_dir.display());
+        info!("Parallel jobs: {}", config.parallel_jobs);
 
-        // Scan workspace for ROS packages
-        info!("Scanning workspace for ROS packages");
-        let src_dir = config.colcon_repo.join("src");
-        let packages = scan_workspace(&src_dir).context("Failed to scan workspace")?;
+        // Create build orchestrator
+        // This initializes the Docker service and prepares for the build
+        info!("Initializing build orchestrator...");
+        let mut orchestrator = colcon_deb_build::BuildOrchestrator::new(config).await;
 
-        info!("Found {} ROS packages", packages.len());
-        if packages.is_empty() {
-            warn!("No packages found in workspace");
-            return Ok(());
-        }
-
-        // Set up progress tracking
-        let progress_bar = Self::setup_progress_bar(&packages)?;
-
-        info!("Starting build process");
-        progress_bar.set_message("Preparing build environment...");
-
-        // Create output directory if it doesn't exist
-        std::fs::create_dir_all(&config.output_dir).with_context(|| {
-            format!("Failed to create output directory: {}", config.output_dir.display())
+        // Run the build
+        // This will:
+        // 1. Prepare the build environment
+        // 2. Execute the build in the container
+        // 3. Collect artifacts
+        info!("Executing build workflow...");
+        orchestrator.build().await.map_err(|e| {
+            color_eyre::eyre::eyre!("Build failed: {}", e)
         })?;
 
-        // Prepare debian directories for each package
-        progress_bar.set_message("Preparing debian directories...");
-
-        // Build packages (simplified implementation for now)
-        let mut successful = 0;
-        let failed = 0;
-
-        for (idx, package) in packages.iter().enumerate() {
-            progress_bar.set_position(idx as u64);
-            progress_bar.set_message(format!(
-                "Building {} [{}/{}]",
-                package.name,
-                idx + 1,
-                packages.len()
-            ));
-
-            // For now, just simulate the build process
-            info!("Processing package: {} ({})", package.name, package.version);
-
-            // TODO: Implement actual build logic using other crates
-            // This is a placeholder implementation
-            tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            successful += 1;
-        }
-
-        progress_bar.finish_and_clear();
-
-        // Print build summary
-        println!("\n=== Build Summary ===");
-        println!("Total packages: {}", packages.len());
-        println!("Successful: {successful}");
-        println!("Failed: {failed}");
-        println!("Output directory: {}", config.output_dir.display());
-
         info!("Build completed successfully");
+        println!("\n✨ Build completed successfully!");
 
         Ok(())
-    }
-
-    fn setup_progress_bar(packages: &[colcon_deb_core::Package]) -> Result<ProgressBar> {
-        let pb = ProgressBar::new(packages.len() as u64);
-        pb.set_style(
-            ProgressStyle::default_bar()
-                .template(
-                    "{spinner:.green} [{elapsed_precise}] {bar:40.cyan/blue} {pos:>3}/{len:3} \
-                     {msg}",
-                )
-                .unwrap()
-                .progress_chars("##-"),
-        );
-        pb.set_message("Preparing build...");
-        Ok(pb)
     }
 }

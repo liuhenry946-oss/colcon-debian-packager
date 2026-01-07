@@ -201,13 +201,13 @@ mod tests {
         std::fs::create_dir_all(colcon_repo.join("src")).unwrap();
 
         let dockerfile = temp_dir.path().join("Dockerfile");
-        std::fs::write(&dockerfile, "FROM ros:humble").unwrap();
+        std::fs::write(&dockerfile, "FROM ros:loong").unwrap();
 
         let config = Config {
             colcon_repo,
             debian_dirs: temp_dir.path().join("debian_dirs"),
             docker: DockerConfig::Dockerfile { dockerfile },
-            ros_distro: Some("humble".to_string()),
+            ros_distro: Some("loong".to_string()),
             output_dir: temp_dir.path().join("output"),
             parallel_jobs: 4,
         };

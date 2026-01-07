@@ -200,8 +200,8 @@ impl RepositoryGenerator {
         let component_path = format!("{}/binary-{}", self.component, self.architecture);
 
         let content = format!(
-            "Origin: ROS {}\nLabel: ROS {}\nSuite: {}\nCodename: {}\nArchitectures: \
-             {}\nComponents: {}\nDescription: ROS {} packages\nDate: {}\nMD5Sum:\n{} {} \
+            "Origin: Agiros {}\nLabel: Agiros {}\nSuite: {}\nCodename: {}\nArchitectures: \
+             {}\nComponents: {}\nDescription: Agiros {} packages\nDate: {}\nMD5Sum:\n{} {} \
              {}/Packages\n{} {} {}/Packages.gz\nSHA1:\n{} {} {}/Packages\n{} {} \
              {}/Packages.gz\nSHA256:\n{} {} {}/Packages\n{} {} {}/Packages.gz\n",
             self.distribution,
@@ -378,7 +378,7 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let generator = RepositoryGenerator::for_ros(
             temp_dir.path().to_path_buf(),
-            "humble",
+            "loong",
             "amd64".to_string(),
         );
 
@@ -387,7 +387,7 @@ mod tests {
         let binary_dir = temp_dir
             .path()
             .join("dists")
-            .join("humble")
+            .join("loong")
             .join("main")
             .join("binary-amd64");
 
@@ -402,12 +402,12 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let generator = RepositoryGenerator::for_ros(
             temp_dir.path().to_path_buf(),
-            "humble",
+            "loong",
             "amd64".to_string(),
         );
 
         let entry = generator.get_sources_list_entry("https://example.com/repo");
-        assert_eq!(entry, "deb https://example.com/repo humble");
+        assert_eq!(entry, "deb https://example.com/repo loong");
     }
 
     #[test]
@@ -418,7 +418,7 @@ mod tests {
 
         let generator = RepositoryGenerator::for_ros(
             temp_dir.path().to_path_buf(),
-            "humble",
+            "loong",
             "amd64".to_string(),
         );
 

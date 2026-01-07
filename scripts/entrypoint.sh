@@ -36,7 +36,7 @@ fi
 # Set up passwordless sudo for required commands
 log "info" "Configuring sudo permissions"
 cat > /etc/sudoers.d/$USERNAME << EOF
-$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/rosdep, /usr/bin/apt-cache
+$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/agirosdep, /usr/bin/apt-cache
 EOF
 chmod 0440 /etc/sudoers.d/$USERNAME
 
@@ -56,9 +56,12 @@ fi
 
 # Set up environment for non-root user
 cat > /home/$USERNAME/.bashrc << 'EOF'
+# Set default ROS distro
+export ROS_DISTRO=${ROS_DISTRO:-loong}
+
 # Source ROS environment if available
-if [ -f /opt/ros/$ROS_DISTRO/setup.bash ]; then
-    source /opt/ros/$ROS_DISTRO/setup.bash
+if [ -f /opt/agiros/$ROS_DISTRO/setup.bash ]; then
+    source /opt/agiros/$ROS_DISTRO/setup.bash
 fi
 
 # Source workspace if built
@@ -72,7 +75,7 @@ export PATH="/helpers:$PATH"
 # Set build environment variables
 export PARALLEL_JOBS=${PARALLEL_JOBS:-4}
 export BUILD_TYPE=${BUILD_TYPE:-Release}
-export ROS_DISTRO=${ROS_DISTRO:-humble}
+export ROS_DISTRO=${ROS_DISTRO:-loong}
 
 # Colcon build settings
 export COLCON_EXTENSION_BLOCKLIST=colcon_core.event_handler.desktop_notification
@@ -91,6 +94,11 @@ else
     log "warning" "rust-script not found - Rust helpers may not work"
 fi
 
-# Drop privileges and run main script
-log "info" "Switching to user $USERNAME and running main script"
-exec su - $USERNAME -c "/scripts/main.sh"
+# Drop privileges and run main script or provided command
+if [ "$#" -gt 0 ]; then
+    log "info" "Switching to user $USERNAME and executing command: $*"
+    exec su - $USERNAME -c "$*"
+else
+    log "info" "Switching to user $USERNAME and running main script"
+    exec su - $USERNAME -c "/scripts/main.sh"
+fi

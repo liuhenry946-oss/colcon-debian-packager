@@ -316,8 +316,8 @@ fn create_test_config() -> (Config, TempDir) {
     let config = Config {
         colcon_repo: workspace,
         debian_dirs: temp_dir.path().join("debian"),
-        docker: DockerConfig::Image { image: "ros:humble".to_string() },
-        ros_distro: Some("humble".to_string()),
+        docker: DockerConfig::Image { image: "ros:loong".to_string() },
+        ros_distro: Some("loong".to_string()),
         output_dir: temp_dir.path().join("output"),
         parallel_jobs: 4,
     };
@@ -587,7 +587,7 @@ async fn test_mock_docker_operations() {
     let mock_docker = MockDockerService::new();
 
     // Test basic operations
-    let result = mock_docker.pull_image("ros:humble").await;
+    let result = mock_docker.pull_image("ros:loong").await;
     assert!(result.is_ok());
 
     let result = mock_docker
@@ -596,7 +596,7 @@ async fn test_mock_docker_operations() {
     assert!(result.is_ok());
 
     let spec = ContainerSpec {
-        image: "ros:humble".to_string(),
+        image: "ros:loong".to_string(),
         command: vec!["echo".to_string(), "hello".to_string()],
         environment: HashMap::new(),
         volumes: vec![],
@@ -624,9 +624,9 @@ async fn test_mock_docker_operations() {
 
     // Verify all operations were recorded
     let operations = mock_docker.get_operations();
-    assert!(operations.contains(&"pull_image_ros:humble".to_string()));
+    assert!(operations.contains(&"pull_image_ros:loong".to_string()));
     assert!(operations.contains(&"build_image_/context_test:latest".to_string()));
-    assert!(operations.contains(&"run_container_ros:humble".to_string()));
+    assert!(operations.contains(&"run_container_ros:loong".to_string()));
     assert!(operations.contains(&"exec_mock_container_id_echo hello".to_string()));
     assert!(operations.contains(&"stop_container_mock_container_id".to_string()));
     assert!(operations.contains(&"remove_container_mock_container_id".to_string()));
@@ -635,7 +635,7 @@ async fn test_mock_docker_operations() {
 #[tokio::test]
 async fn test_executor_config_validation() {
     let config = ExecutorConfig {
-        container_image: "ros:humble".to_string(),
+        container_image: "ros:loong".to_string(),
         workspace_path: PathBuf::from("/workspace"),
         output_dir: PathBuf::from("/output"),
         parallel_jobs: 4,

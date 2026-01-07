@@ -10,7 +10,7 @@ The build orchestration layer runs on the **host system** and coordinates the en
 
 The orchestrator follows a clear separation:
 - **Host Orchestrator**: Manages containers, monitors progress, handles errors
-- **Container Scripts**: Execute rosdep, colcon, dpkg-deb commands
+- **Container Scripts**: Execute agirosdep, colcon, dpkg-deb commands
 
 This ensures:
 1. The host system remains clean (no ROS dependencies needed)

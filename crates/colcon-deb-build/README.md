@@ -31,9 +31,9 @@ let config = Config {
     colcon_repo: PathBuf::from("./workspace"),
     debian_dirs: PathBuf::from("./debian"),
     docker: DockerConfig::Image {
-        image: "ros:humble".to_string(),
+        image: "ros:loong".to_string(),
     },
-    ros_distro: Some("humble".to_string()),
+    ros_distro: Some("loong".to_string()),
     output_dir: PathBuf::from("./output"),
     parallel_jobs: 4,
 };

@@ -15,7 +15,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # ROS configuration
-ROS_DISTRO="${ROS_DISTRO:-humble}"
+ROS_DISTRO="${ROS_DISTRO:-loong}"
 
 log() {
     echo -e "${BLUE}[$(date +'%H:%M:%S')]${NC} $*"
@@ -139,7 +139,7 @@ int main(int argc, char * argv[])
 EOF
     fi
     
-    success "ROS test workspace ready at $WORK_DIR"
+    success "AGIROS test workspace ready at $WORK_DIR"
 }
 
 # Create colcon-deb configuration
@@ -300,7 +300,7 @@ EOF
 main() {
     echo -e "${GREEN}Colcon-Deb ROS Package Testing${NC}"
     echo "==============================="
-    echo "ROS Distro: $ROS_DISTRO"
+    echo "AGIROS Distro: $ROS_DISTRO"
     echo "Work Directory: $WORK_DIR"
     echo
     

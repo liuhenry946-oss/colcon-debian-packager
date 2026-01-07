@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # ROS distributions to build
 declare -A ROS_DISTROS=(
-    ["humble"]="ubuntu:22.04"
+    ["loong"]="ubuntu:22.04"
     ["iron"]="ubuntu:22.04"
     ["rolling"]="ubuntu:22.04"
 )
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
         --help)
             echo "Usage: $0 [OPTIONS]"
             echo "Options:"
-            echo "  --distro DISTRO   Build only specified ROS distro (humble, iron, rolling)"
+            echo "  --distro DISTRO   Build only specified ROS distro (loong, iron, rolling)"
             echo "  --push            Push images to registry after building"
             echo "  --registry REG    Container registry to use (default: ghcr.io/your-org)"
             echo "  --help            Show this help message"

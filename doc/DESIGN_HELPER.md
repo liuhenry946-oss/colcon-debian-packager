@@ -509,7 +509,7 @@ struct Package {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
     
-    let ros_distro = env::var("ROS_DISTRO").unwrap_or_else(|_| "humble".to_string());
+    let ros_distro = env::var("ROS_DISTRO").unwrap_or_else(|_| "loong".to_string());
     let parallel_jobs = env::var("PARALLEL_JOBS").unwrap_or_else(|_| "4".to_string());
     
     build_all_packages(&args.workspace, &args.debian_dirs, &args.output_dir, &ros_distro).await?;
@@ -914,12 +914,12 @@ exec su - builder -c "/scripts/main.sh"
 #!/bin/bash
 # /scripts/main.sh - Updated to use rust-script helpers
 
-source /opt/ros/$ROS_DISTRO/setup.bash
+source /opt/agiros/$ROS_DISTRO/setup.bash
 
 # Install dependencies
-sudo rosdep init || true
-rosdep update
-sudo rosdep install --from-paths src --ignore-src -y
+sudo agirosdep init || true
+agirosdep update
+sudo agirosdep install --from-paths src --ignore-src -y
 
 # Build packages using rust-script orchestrator
 # (The orchestrator will run colcon build first, then create .deb packages)
@@ -1041,7 +1041,7 @@ fn main() {
 ### Option 1: Custom ROS + Rust Image
 
 ```dockerfile
-FROM ros:humble-ros-base
+FROM ros:loong-ros-base
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -1070,7 +1070,7 @@ FROM rust:1.75 as rust-builder
 RUN cargo install rust-script
 
 # Runtime stage with minimal footprint
-FROM ros:humble-ros-base
+FROM ros:loong-ros-base
 COPY --from=rust-builder /usr/local/cargo/bin/rust-script /usr/local/bin/
 COPY --from=rust-builder /usr/local/cargo/bin/rustc /usr/local/bin/
 COPY --from=rust-builder /usr/local/cargo/bin/cargo /usr/local/bin/

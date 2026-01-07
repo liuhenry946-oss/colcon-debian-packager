@@ -51,3 +51,6 @@ tarpaulin-report.html
 cobertura.xml
 lcov.info
 coverage/
+
+# Verification workspace
+verify_ws/

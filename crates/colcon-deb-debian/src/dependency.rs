@@ -9,7 +9,7 @@ use crate::error::{DebianError, Result};
 /// ROS distribution information
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RosDistro {
-    /// Distribution name (humble, iron, etc.)
+    /// Distribution name (loong, iron, etc.)
     pub name: String,
     /// Ubuntu codename
     pub ubuntu_codename: String,
@@ -18,10 +18,10 @@ pub struct RosDistro {
 }
 
 impl RosDistro {
-    /// Create ROS Humble distribution
-    pub fn humble() -> Self {
+    /// Create ROS loong distribution
+    pub fn loong() -> Self {
         Self {
-            name: "humble".to_string(),
+            name: "loong".to_string(),
             ubuntu_codename: "jammy".to_string(),
             ros_version: 2,
         }
@@ -36,10 +36,10 @@ impl RosDistro {
         }
     }
 
-    /// Create ROS Jazzy distribution
-    pub fn jazzy() -> Self {
+    /// Create ROS pixiu distribution
+    pub fn pixiu() -> Self {
         Self {
-            name: "jazzy".to_string(),
+            name: "pixiu".to_string(),
             ubuntu_codename: "noble".to_string(),
             ros_version: 2,
         }
@@ -51,7 +51,7 @@ impl RosDistro {
 pub struct DependencyMapper {
     /// ROS distribution information
     ros_distro: RosDistro,
-    /// System package mappings (rosdep-style)
+    /// System package mappings (agirosdep-style)
     system_mappings: HashMap<String, String>,
     /// Custom package mappings
     custom_mappings: HashMap<String, String>,
@@ -67,9 +67,9 @@ impl DependencyMapper {
         }
     }
 
-    /// Create mapper for ROS Humble
-    pub fn for_humble() -> Self {
-        Self::new(RosDistro::humble())
+    /// Create mapper for ROS loong
+    pub fn for_loong() -> Self {
+        Self::new(RosDistro::loong())
     }
 
     /// Create mapper for ROS Iron
@@ -77,9 +77,9 @@ impl DependencyMapper {
         Self::new(RosDistro::iron())
     }
 
-    /// Create mapper for ROS Jazzy
-    pub fn for_jazzy() -> Self {
-        Self::new(RosDistro::jazzy())
+    /// Create mapper for ROS pixiu
+    pub fn for_pixiu() -> Self {
+        Self::new(RosDistro::pixiu())
     }
 
     /// Add custom mapping
@@ -122,7 +122,7 @@ impl DependencyMapper {
     fn ros_package_to_debian(&self, ros_package: &str) -> String {
         // Convert underscores to hyphens for Debian naming
         let debian_package = ros_package.replace('_', "-");
-        format!("ros-{}-{}", self.ros_distro.name, debian_package)
+        format!("agiros-{}-{}", self.ros_distro.name, debian_package)
     }
 
     /// Check if ROS package name is valid
@@ -146,7 +146,7 @@ impl DependencyMapper {
             .collect()
     }
 
-    /// Get default system mappings (similar to rosdep)
+    /// Get default system mappings (similar to agirosdep)
     fn default_system_mappings() -> HashMap<String, String> {
         let mut mappings = HashMap::new();
 
@@ -273,18 +273,18 @@ mod tests {
 
     #[test]
     fn test_ros_package_mapping() {
-        let mapper = DependencyMapper::for_humble();
+        let mapper = DependencyMapper::for_loong();
 
-        assert_eq!(mapper.map_package("std_msgs").unwrap(), "ros-humble-std-msgs");
+        assert_eq!(mapper.map_package("std_msgs").unwrap(), "agiros-loong-std-msgs");
 
-        assert_eq!(mapper.map_package("geometry_msgs").unwrap(), "ros-humble-geometry-msgs");
+        assert_eq!(mapper.map_package("geometry_msgs").unwrap(), "agiros-loong-geometry-msgs");
 
-        assert_eq!(mapper.map_package("sensor_msgs").unwrap(), "ros-humble-sensor-msgs");
+        assert_eq!(mapper.map_package("sensor_msgs").unwrap(), "agiros-loong-sensor-msgs");
     }
 
     #[test]
     fn test_system_package_mapping() {
-        let mapper = DependencyMapper::for_humble();
+        let mapper = DependencyMapper::for_loong();
 
         assert_eq!(mapper.map_package("cmake").unwrap(), "cmake");
         assert_eq!(mapper.map_package("python3").unwrap(), "python3");
@@ -293,7 +293,7 @@ mod tests {
 
     #[test]
     fn test_custom_mappings() {
-        let mut mapper = DependencyMapper::for_humble();
+        let mut mapper = DependencyMapper::for_loong();
         mapper.add_custom_mapping("custom_pkg".to_string(), "my-custom-package".to_string());
 
         assert_eq!(mapper.map_package("custom_pkg").unwrap(), "my-custom-package");
@@ -301,7 +301,7 @@ mod tests {
 
     #[test]
     fn test_invalid_package_names() {
-        let mapper = DependencyMapper::for_humble();
+        let mapper = DependencyMapper::for_loong();
 
         // Package name starting with number
         assert!(mapper.map_package("123invalid").is_err());
@@ -315,7 +315,7 @@ mod tests {
 
     #[test]
     fn test_control_dependencies() {
-        let mapper = DependencyMapper::for_humble();
+        let mapper = DependencyMapper::for_loong();
 
         let build_deps = vec!["cmake".to_string(), "std_msgs".to_string()];
         let exec_deps = vec!["geometry_msgs".to_string()];
@@ -327,31 +327,31 @@ mod tests {
         assert!(deps.build_depends.contains(&"cmake".to_string()));
         assert!(deps
             .build_depends
-            .contains(&"ros-humble-std-msgs".to_string()));
+            .contains(&"agiros-loong-std-msgs".to_string()));
         assert!(deps
             .depends
-            .contains(&"ros-humble-geometry-msgs".to_string()));
+            .contains(&"agiros-loong-geometry-msgs".to_string()));
     }
 
     #[test]
     fn test_different_distros() {
-        let humble_mapper = DependencyMapper::for_humble();
+        let loong_mapper = DependencyMapper::for_loong();
         let iron_mapper = DependencyMapper::for_iron();
 
-        assert_eq!(humble_mapper.map_package("std_msgs").unwrap(), "ros-humble-std-msgs");
+        assert_eq!(loong_mapper.map_package("std_msgs").unwrap(), "agiros-loong-std-msgs");
 
-        assert_eq!(iron_mapper.map_package("std_msgs").unwrap(), "ros-iron-std-msgs");
+        assert_eq!(iron_mapper.map_package("std_msgs").unwrap(), "agiros-iron-std-msgs");
     }
 
     #[test]
     fn test_control_dependencies_formatting() {
         let mut deps = ControlDependencies::new();
         deps.add_build_depend("cmake".to_string());
-        deps.add_build_depend("ros-humble-std-msgs".to_string());
-        deps.add_depend("ros-humble-geometry-msgs".to_string());
+        deps.add_build_depend("agiros-loong-std-msgs".to_string());
+        deps.add_depend("agiros-loong-geometry-msgs".to_string());
 
         let formatted = deps.format_for_control();
-        assert!(formatted.contains("Build-Depends: cmake, ros-humble-std-msgs"));
-        assert!(formatted.contains("Depends: ros-humble-geometry-msgs"));
+        assert!(formatted.contains("Build-Depends: cmake, agiros-loong-std-msgs"));
+        assert!(formatted.contains("Depends: agiros-loong-geometry-msgs"));
     }
 }

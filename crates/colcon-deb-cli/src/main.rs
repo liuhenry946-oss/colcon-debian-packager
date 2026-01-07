@@ -52,6 +52,10 @@ enum Commands {
         /// Additional packages to install in container
         #[arg(long, value_name = "PACKAGE")]
         extra_packages: Vec<String>,
+
+        /// Override AGIROS distribution (e.g. "loong", "pixiu")
+        #[arg(long, value_name = "DISTRO")]
+        agiros_distro: Option<String>,
     },
 
     /// Validate configuration file and workspace
@@ -83,7 +87,7 @@ enum Commands {
         force: bool,
 
         /// Initialize for specific ROS distro
-        #[arg(long, value_name = "DISTRO", default_value = "humble")]
+        #[arg(long, value_name = "DISTRO", default_value = "loong")]
         ros_distro: String,
     },
 }
@@ -106,8 +110,8 @@ async fn main() -> Result<()> {
 
     // Handle commands
     let result = match cli.command {
-        Commands::Build { output, jobs, arch: _, no_docker: _, extra_packages: _ } => {
-            let command = commands::BuildCommand::new(config_path, output, jobs);
+        Commands::Build { output, jobs, arch: _, no_docker: _, extra_packages: _, agiros_distro } => {
+            let command = commands::BuildCommand::new(config_path, output, jobs, agiros_distro);
             command.execute().await
         }
 

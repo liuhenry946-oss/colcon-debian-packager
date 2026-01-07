@@ -61,7 +61,7 @@ make install
 colcon_repo: /path/to/your/ros/workspace
 debian_dirs: /path/to/debian/configs
 docker:
-  image: ros:humble-ros-base
+  image: ros:loong-ros-base
 output_dir: ./output
 parallel_jobs: 4
 ```
@@ -88,12 +88,12 @@ colcon_repo: ${HOME}/my_ros_ws
 debian_dirs: ${HOME}/my_debian_dirs
 docker:
   # Option 1: Use existing image
-  image: ros:humble-ros-base
+  image: ros:loong-ros-base
   # Option 2: Build from Dockerfile
-  # dockerfile: ./docker/Dockerfile.humble
+  # dockerfile: ./docker/Dockerfile.loong
 
 # Optional fields
-ros_distro: humble  # Auto-detected if not specified
+ros_distro: loong  # Auto-detected if not specified
 output_dir: ./output
 parallel_jobs: 8
 ```
@@ -170,7 +170,7 @@ cargo nextest run package_name
 
 1. **Configuration**: The host reads the YAML configuration and validates paths
 2. **Container Setup**: Docker container is prepared with necessary tools
-3. **Dependency Installation**: `rosdep` installs system dependencies
+3. **Dependency Installation**: `agirosdep` installs system dependencies
 4. **Build Phase**: `colcon build` compiles all packages (handles dependency order)
 5. **Packaging Phase**: `.deb` files are created in parallel for all packages
 6. **Repository Generation**: APT repository metadata is generated

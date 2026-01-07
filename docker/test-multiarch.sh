@@ -37,8 +37,8 @@ test_arch() {
     # Build test image for architecture
     docker buildx build \
         --platform "$platform" \
-        --build-arg BASE_IMAGE="ros:humble-ros-base" \
-        --tag "colcon-deb:humble-$arch" \
+        --build-arg BASE_IMAGE="ros:loong-ros-base" \
+        --tag "colcon-deb:loong-$arch" \
         --load \
         --file "$SCRIPT_DIR/base/Dockerfile" \
         "$SCRIPT_DIR"
@@ -48,7 +48,7 @@ test_arch() {
         
         # Test the image
         echo -e "${YELLOW}Testing image functionality...${NC}"
-        docker run --rm --platform "$platform" "colcon-deb:humble-$arch" bash -c "
+        docker run --rm --platform "$platform" "colcon-deb:loong-$arch" bash -c "
             echo 'Architecture: \$(uname -m)'
             echo 'Debian arch: \$(dpkg --print-architecture)'
             rust-script --version
@@ -96,4 +96,4 @@ echo -e "${GREEN}Multi-architecture test complete!${NC}"
 
 # Show results
 echo -e "\n${GREEN}Built images:${NC}"
-docker images | grep -E "REPOSITORY|colcon-deb.*humble"
+docker images | grep -E "REPOSITORY|colcon-deb.*loong"

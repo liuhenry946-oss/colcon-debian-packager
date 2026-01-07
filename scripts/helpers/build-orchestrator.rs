@@ -57,10 +57,10 @@ struct Package {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let args = Args::parse();
     
-    let ros_distro = env::var("ROS_DISTRO").unwrap_or_else(|_| "humble".to_string());
+    let ros_distro = env::var("ROS_DISTRO").unwrap_or_else(|_| "loong".to_string());
     
     build_all_packages(&args.workspace, &args.debian_dirs, &args.output_dir, &ros_distro).await?;
     
@@ -72,7 +72,7 @@ async fn build_all_packages(
     debian_dirs: &Path,
     output_dir: &Path,
     ros_distro: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Stage: Scanning
     report_stage("scanning").await?;
     
@@ -101,7 +101,7 @@ async fn build_all_packages(
         report_progress(current, total_packages, &format!("Preparing {}", package.name)).await?;
         
         let package_path = workspace.join("src").join(&package.path);
-        prepare_debian_dir(&package.name, &package_path, debian_dirs, ros_distro).await?;
+        prepare_debian_dir(&package.name, &package_path, debian_dirs, ros_distro, &package.version).await?;
     }
     
     // Stage: Creating .deb packages (can be done in parallel)
@@ -165,6 +165,9 @@ async fn build_all_packages(
     // Stage: Repository
     report_stage("repository").await?;
     generate_repository(output_dir).await?;
+
+    // Create artifacts.tar for host tool to collect
+    package_artifacts(output_dir).await?;
     
     // Stage: Complete
     report_stage("complete").await?;
@@ -173,8 +176,9 @@ async fn build_all_packages(
     Ok(())
 }
 
-async fn scan_packages(src_path: &Path) -> Result<ScanResult, Box<dyn std::error::Error>> {
-    let output = Command::new("/helpers/package-scanner.rs")
+async fn scan_packages(src_path: &Path) -> Result<ScanResult, Box<dyn std::error::Error + Send + Sync>> {
+    let output = Command::new("rust-script")
+        .arg("/helpers/package-scanner.rs")
         .arg(src_path)
         .arg("--format")
         .arg("json")
@@ -191,7 +195,7 @@ async fn scan_packages(src_path: &Path) -> Result<ScanResult, Box<dyn std::error
     Ok(result)
 }
 
-async fn run_colcon_build(workspace: &Path) -> Result<(), Box<dyn std::error::Error>> {
+async fn run_colcon_build(workspace: &Path) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let parallel_jobs = env::var("PARALLEL_JOBS").unwrap_or_else(|_| "4".to_string());
     let build_type = env::var("BUILD_TYPE").unwrap_or_else(|_| "Release".to_string());
     
@@ -245,13 +249,16 @@ async fn prepare_debian_dir(
     package_path: &Path,
     debian_dirs: &Path,
     ros_distro: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let output = Command::new("/helpers/debian-preparer.rs")
+    package_version: &str,
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    let output = Command::new("rust-script")
+        .arg("/helpers/debian-preparer.rs")
         .args(&[
-            package_name,
-            &package_path.to_string_lossy(),
-            &debian_dirs.to_string_lossy(),
-            ros_distro,
+            "--package-name", package_name,
+            "--package-path", &package_path.to_string_lossy(),
+            "--package-version", package_version,
+            "--debian-dirs", &debian_dirs.to_string_lossy(),
+            "--ros-distro", ros_distro,
         ])
         .output()?;
         
@@ -330,7 +337,8 @@ async fn move_deb_files(source_dir: &Path, output_dir: &Path) -> Result<(), Box<
         if let Some(extension) = path.extension() {
             if extension == "deb" {
                 let dest = output_dir.join(entry.file_name());
-                fs::rename(&path, &dest).await?;
+                fs::copy(&path, &dest).await?;
+                // fs::remove_file(&path).await?; // Optional: cleanup source
                 moved_count += 1;
             }
         }
@@ -343,7 +351,7 @@ async fn move_deb_files(source_dir: &Path, output_dir: &Path) -> Result<(), Box<
     Ok(())
 }
 
-async fn generate_repository(output_dir: &Path) -> Result<(), Box<dyn std::error::Error>> {
+async fn generate_repository(output_dir: &Path) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     report_log("info", "Generating APT repository metadata").await?;
     
     // Call the create-repo.sh script
@@ -359,67 +367,53 @@ async fn generate_repository(output_dir: &Path) -> Result<(), Box<dyn std::error
     Ok(())
 }
 
+async fn package_artifacts(output_dir: &Path) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    report_log("info", "Packing artifacts into tar archive").await?;
+    
+    // Create artifacts.tar from all files in output_dir
+    // We use std::process::Command to call tar directly for simplicity
+    let tar_path = output_dir.join("artifacts.tar");
+    let output = Command::new("tar")
+        // Create archive
+        .arg("cvf")
+        .arg(&tar_path)
+        // Change to output dir so paths are relative
+        .arg("-C")
+        .arg(output_dir)
+        // Archive everything in current dir (which is output_dir due to -C)
+        .arg(".") 
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        return Err(format!("Failed to create artifacts.tar: {}", stderr).into());
+    }
+    
+    Ok(())
+}
+
 // Progress reporting functions
 async fn report_stage(stage: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if Path::new("/helpers/progress-reporter.rs").exists() {
-        Command::new("/helpers/progress-reporter.rs")
-            .args(&["stage", stage])
-            .output()?;
-    } else {
-        eprintln!("::progress::type=stage,value={}", stage);
-    }
+    eprintln!("::progress::type=stage,value={}", stage);
     Ok(())
 }
 
 async fn report_progress(current: usize, total: usize, message: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if Path::new("/helpers/progress-reporter.rs").exists() {
-        Command::new("/helpers/progress-reporter.rs")
-            .args(&[
-                "progress",
-                "--current", &current.to_string(),
-                "--total", &total.to_string(),
-                "--message", message
-            ])
-            .output()?;
-    } else {
-        eprintln!("::progress::type=general,current={},total={},message={}", current, total, message);
-    }
+    eprintln!("::progress::type=general,current={},total={},message={}", current, total, message);
     Ok(())
 }
 
 async fn report_package_start(name: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if Path::new("/helpers/progress-reporter.rs").exists() {
-        Command::new("/helpers/progress-reporter.rs")
-            .args(&["package-start", name])
-            .output()?;
-    } else {
-        eprintln!("::progress::type=package_start,name={}", name);
-    }
+    eprintln!("::progress::type=package_start,name={}", name);
     Ok(())
 }
 
 async fn report_package_complete(name: &str, success: bool) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if Path::new("/helpers/progress-reporter.rs").exists() {
-        Command::new("/helpers/progress-reporter.rs")
-            .args(&[
-                "package-complete",
-                name,
-                if success { "--success" } else { "" }
-            ].into_iter().filter(|s| !s.is_empty()).collect::<Vec<_>>())
-            .output()?;
-    } else {
-        eprintln!("::progress::type=package_complete,name={},success={}", name, success);
-    }
+    eprintln!("::progress::type=package_complete,name={},success={}", name, success);
     Ok(())
 }
 
 async fn report_log(level: &str, message: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-    if Path::new("/helpers/progress-reporter.rs").exists() {
-        Command::new("/helpers/progress-reporter.rs")
-            .args(&["log", "--level", level, "--message", message])
-            .output()?;
-    } else {
-        eprintln!("::log::level={},msg={}", level, message);
-    }
+    eprintln!("::log::level={},msg={}", level, message);
     Ok(())
 }

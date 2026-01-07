@@ -61,8 +61,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .follow_links(true)
         .into_iter()
         .filter_entry(|e| {
-            // Skip directories that contain COLCON_IGNORE
-            !(e.path().is_dir() && e.path().join("COLCON_IGNORE").exists())
+            // Skip directories that contain COLCON_IGNORE or are build artifacts
+            if e.path().is_dir() {
+                let name = e.file_name().to_string_lossy();
+                if name == "build" || name == "install" || name == "log" || name == "target" || name == "debian" {
+                    return false;
+                }
+                if e.path().join("COLCON_IGNORE").exists() {
+                    return false;
+                }
+            }
+            true
         })
         .filter_map(|e| e.ok())
     {

@@ -56,8 +56,8 @@ impl InitCommand {
         Ok(Config {
             colcon_repo: current_dir.clone(),
             debian_dirs: current_dir.join("debian_dirs"),
-            docker: DockerConfig::Image { image: "ros:humble-ros-base".to_string() },
-            ros_distro: Some("humble".to_string()),
+            docker: DockerConfig::Image { image: "ros:loong-ros-base".to_string() },
+            ros_distro: Some("loong".to_string()),
             output_dir: current_dir.join("output"),
             parallel_jobs: 4,
         })

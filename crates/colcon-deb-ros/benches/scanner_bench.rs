@@ -168,7 +168,7 @@ fn benchmark_xml_parsing(c: &mut Criterion) {
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend condition="$ROS_DISTRO == humble">tf2_ros</exec_depend>
+  <exec_depend condition="$ROS_DISTRO == loong">tf2_ros</exec_depend>
   
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

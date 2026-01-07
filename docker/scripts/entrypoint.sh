@@ -4,8 +4,8 @@
 set -e
 
 # Source ROS setup if available
-if [ -f "/opt/ros/${ROS_DISTRO}/setup.bash" ]; then
-    source "/opt/ros/${ROS_DISTRO}/setup.bash"
+if [ -f "/opt/agiros/${ROS_DISTRO}/setup.bash" ]; then
+    source "/opt/agiros/${ROS_DISTRO}/setup.bash"
 fi
 
 # Handle user mapping for better file permissions

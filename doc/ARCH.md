@@ -15,7 +15,7 @@ The Colcon Debian Packager uses a **split architecture**:
 
 2. **Container Environment (Shell Scripts)**
    - Runs inside Docker with ROS pre-installed
-   - Installs dependencies with rosdep
+   - Installs dependencies with agirosdep
    - Builds packages with colcon
    - Creates .deb files with dpkg-deb
    - Generates APT repository metadata
@@ -122,7 +122,7 @@ graph TB
     end
     
     subgraph "Docker Container"
-        ES[Entry Script] --> RD[rosdep install]
+        ES[Entry Script] --> RD[agirosdep install]
         RD --> CB[colcon build]
         CB --> DP[dpkg-deb]
         DP --> AR[apt-ftparchive]
@@ -219,7 +219,7 @@ sequenceDiagram
     Container->>Helper: /helpers/package-scanner.rs /workspace/src
     Helper-->>Container: Package list JSON
     
-    Container->>Container: rosdep install
+    Container->>Container: agirosdep install
     Container->>Container: colcon build (handles all dependency ordering)
     Container->>Container: source install/setup.bash
     
@@ -301,7 +301,7 @@ sequenceDiagram
    useradd -u $HOST_UID -g $HOST_GID -m -s /bin/bash builder
    
    # Setup sudo permissions
-   echo "builder ALL=(ALL) NOPASSWD: /usr/bin/apt*, /usr/bin/rosdep, /usr/bin/dpkg*" > /etc/sudoers.d/builder
+   echo "builder ALL=(ALL) NOPASSWD: /usr/bin/apt*, /usr/bin/agirosdep, /usr/bin/dpkg*" > /etc/sudoers.d/builder
    
    # Fix permissions
    chown -R builder:builder /workspace
@@ -315,16 +315,16 @@ sequenceDiagram
    #!/bin/bash
    # /scripts/main.sh
    
-   source /opt/ros/$ROS_DISTRO/setup.bash
+   source /opt/agiros/$ROS_DISTRO/setup.bash
    cd /workspace
    
    # Use Rust script helper to scan packages
    PACKAGES=$(/helpers/package-scanner.rs /workspace/src)
    
    # Install dependencies
-   sudo rosdep init || true
-   rosdep update
-   sudo rosdep install --from-paths src --ignore-src -y
+   sudo agirosdep init || true
+   agirosdep update
+   sudo agirosdep install --from-paths src --ignore-src -y
    
    # Build all packages (colcon handles dependency ordering)
    colcon build --merge-install --parallel-workers $PARALLEL_JOBS
@@ -440,7 +440,7 @@ volumes:
 
 ### ROS 2 Integration
 - Parse ROS 2 package.xml format (v3)
-- Support ROS 2 distributions (Humble, Iron, Jazzy, etc.)
+- Support ROS 2 distributions (loong, Iron, pixiu, etc.)
 - Handle ament_cmake and ament_python build systems
 - No ROS 1 or catkin support
 

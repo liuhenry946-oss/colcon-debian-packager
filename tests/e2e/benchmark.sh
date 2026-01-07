@@ -58,7 +58,7 @@ benchmark_config_validation() {
 colcon_repo: $WORKSPACE
 debian_dirs: $OUTPUT_DIR/debian_dirs
 docker:
-  image: ros:humble-ros-base
+  image: ros:loong-ros-base
 output_dir: $OUTPUT_DIR/packages
 parallel_jobs: $PARALLEL_JOBS
 EOF
@@ -80,7 +80,7 @@ benchmark_container_startup() {
     
     for i in $(seq 1 $ITERATIONS); do
         measure_time "container_startup_$i" \
-            docker run --rm colcon-deb:humble-fast echo "Hello"
+            docker run --rm colcon-deb:loong-fast echo "Hello"
     done
 }
 

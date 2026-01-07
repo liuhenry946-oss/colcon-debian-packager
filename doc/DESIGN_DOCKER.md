@@ -206,7 +206,7 @@ useradd -u {uid} -g {gid} -m -s /bin/bash {user}
 
 # Configure sudo for specific commands
 cat > /etc/sudoers.d/{user} << EOF
-{user} ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/rosdep
+{user} ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/agirosdep
 EOF
 
 # Switch to non-root user

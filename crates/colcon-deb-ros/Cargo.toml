@@ -7,7 +7,7 @@ license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 rust-version.workspace = true
-description = "ROS package handling for Colcon Debian Packager"
+description = "AGIROS package handling for Colcon Debian Packager"
 
 [dependencies]
 colcon-deb-core = { path = "../colcon-deb-core" }

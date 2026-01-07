@@ -15,8 +15,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let config = Config {
         colcon_repo: PathBuf::from("./test_workspace"),
         debian_dirs: PathBuf::from("./debian_dirs"),
-        docker: DockerConfig::Image { image: "ros:humble".to_string() },
-        ros_distro: Some("humble".to_string()),
+        docker: DockerConfig::Image { image: "ros:loong".to_string() },
+        ros_distro: Some("loong".to_string()),
         output_dir: PathBuf::from("./output"),
         parallel_jobs: 4,
     };

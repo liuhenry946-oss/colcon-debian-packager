@@ -93,8 +93,8 @@ This document outlines the phased implementation plan for rewriting the Colcon D
 | Test cross-architecture         | High     | ✅ Done |          | ARM64/AMD64                      |
 | **Dependency Extraction**       |          |         |          |                                  |
 | Parse package.xml dependencies  | High     | ✅ Done |          | For Debian control               |
-| Map ROS deps to Debian names    | High     | ✅ Done |          | ros-humble-* format              |
-| Create rosdep integration       | High     | ✅ Done |          | System deps                      |
+| Map ROS deps to Debian names    | High     | ✅ Done |          | agiros-loong-* format              |
+| Create agirosdep integration       | High     | ✅ Done |          | System deps                      |
 | Extract version constraints     | Medium   | ✅ Done |          | If specified                     |
 | **Testing & Quality**           |          |         |          |                                  |
 | Unit tests for XML parsing      | High     | ✅ Done |          | All formats                      |
@@ -284,8 +284,8 @@ This document outlines the phased implementation plan for rewriting the Colcon D
 | Add debian revision             | High     | ✅ Done |          | -1, -2, etc          |
 | Compare versions                | Medium   | ✅ Done |          | Debian algorithm     |
 | **Dependency Mapping**          |          |         |          |                      |
-| Map ROS dependencies            | High     | ✅ Done |          | ros-humble-* format  |
-| Integrate rosdep data           | High     | ✅ Done |          | System packages      |
+| Map ROS dependencies            | High     | ✅ Done |          | agiros-loong-* format  |
+| Integrate agirosdep data           | High     | ✅ Done |          | System packages      |
 | Handle virtual packages         | Medium   | ✅ Done |          | Provides field       |
 | Resolve conflicts               | Medium   | ✅ Done |          | Package conflicts    |
 | **Repository Generation**       |          |         |          |                      |
@@ -456,8 +456,8 @@ This phase is split into 4 distinct stages to ensure systematic development and 
 | Optimize critical paths          | Medium   | ✅ Done |          | Performance          |
 | Enhance logging/debugging        | Medium   | ✅ Done |          | Troubleshooting      |
 | **Cross-Platform Testing**       |          |         |          |                      |
-| Test on Ubuntu 22.04 (Jammy)     | High     | ✅ Done |          | ROS Humble target    |
-| Test on Ubuntu 24.04 (Noble)     | High     | ✅ Done |          | ROS Jazzy target     |
+| Test on Ubuntu 22.04 (Jammy)     | High     | ✅ Done |          | ROS loong target    |
+| Test on Ubuntu 24.04 (Noble)     | High     | ✅ Done |          | ROS pixiu target     |
 | Test on different host systems   | Medium   | ✅ Done |          | macOS, Windows WSL   |
 
 #### Stage 6.3 Deliverables
@@ -678,7 +678,7 @@ This phase is split into 4 distinct stages to ensure systematic development and 
 - cargo-flamegraph (profiling)
 
 ### Container Requirements
-- ROS base images (humble, iron, etc.)
+- ROS base images (loong, iron, etc.)
 - Rust toolchain in container
 - rust-script installed
 - bloom-generate available

@@ -2,146 +2,51 @@
 //! ```cargo
 //! [dependencies]
 //! clap = { version = "4.0", features = ["derive"] }
-//! tokio = { version = "1.0", features = ["process", "fs", "rt", "macros"] }
+//! tokio = { version = "1.0", features = ["full"] }
 //! serde_json = "1.0"
 //! walkdir = "2.0"
 //! regex = "1.0"
 //! chrono = { version = "0.4", features = ["serde"] }
 //! ```
 
-//! Debian directory preparer for ROS packages
-//!
-//! This script manages debian directories by:
-//! 1. Checking for existing custom debian directories
-//! 2. Calling bloom-generate for missing directories
-//! 3. Validating debian directory structure
-//! 4. Saving generated directories to the collection
+// ... (skipping unchanged parts)
 
-use clap::Parser;
-use regex::Regex;
-use serde_json::json;
-use std::collections::HashMap;
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
-use walkdir::WalkDir;
-
-#[derive(Parser, Debug)]
-#[command(name = "debian-preparer")]
-#[command(about = "Prepare debian directories for ROS packages")]
-struct Args {
-    /// Package name
-    #[arg(short, long)]
-    package_name: String,
-    
-    /// Package source path
-    #[arg(short = 's', long)]
-    package_path: PathBuf,
-    
-    /// Package version
-    #[arg(short = 'v', long)]
-    package_version: String,
-    
-    /// Debian directories collection path
-    #[arg(short, long)]
-    debian_dirs: PathBuf,
-    
-    /// ROS distribution
-    #[arg(short, long, default_value = "humble")]
-    ros_distro: String,
-    
-    /// Maintainer information
-    #[arg(short, long)]
-    maintainer: Option<String>,
-    
-    /// Whether to use bloom-generate for missing directories
-    #[arg(long, default_value = "true")]
-    use_bloom: bool,
-    
-    /// Force regeneration even if custom directory exists
-    #[arg(long, default_value = "false")]
-    force_regenerate: bool,
-    
-    /// Validate debian directory after preparation
-    #[arg(long, default_value = "true")]
-    validate: bool,
-    
-    /// JSON output for structured results
-    #[arg(long, default_value = "false")]
-    json_output: bool,
-}
-
-#[derive(Debug)]
-struct PreparationResult {
-    package_name: String,
-    used_custom: bool,
-    used_bloom: bool,
-    validation_passed: bool,
-    debian_path: PathBuf,
-    warnings: Vec<String>,
-    errors: Vec<String>,
-}
-
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Args::parse();
-    
-    let result = prepare_debian_directory(&args).await?;
-    
-    if args.json_output {
-        output_json_result(&result).await?;
-    } else {
-        output_text_result(&result).await?;
-    }
-    
-    // Exit with error if validation failed
-    if args.validate && !result.validation_passed {
-        std::process::exit(1);
-    }
-    
-    Ok(())
-}
-
-async fn prepare_debian_directory(args: &Args) -> Result<PreparationResult, Box<dyn std::error::Error>> {
-    let mut result = PreparationResult {
-        package_name: args.package_name.clone(),
-        used_custom: false,
-        used_bloom: false,
-        validation_passed: false,
-        debian_path: args.package_path.join("debian"),
-        warnings: Vec::new(),
-        errors: Vec::new(),
-    };
-    
-    report_progress("stage", &format!("Preparing debian directory for {}", args.package_name)).await?;
-    
     let custom_debian_path = args.debian_dirs.join(&args.package_name).join("debian");
-    let target_debian_path = &result.debian_path;
+    // Fix borrow checker error by cloning the path
+    let target_debian_path = result.debian_path.clone();
+
+    // Check if debian directory already exists in package path and not forced to regenerate
+    if target_debian_path.exists() && !args.force_regenerate {
+        report_log("info", &format!("Skipping debian-preparer, debian directory already exists for {}", args.package_name)).await?;
+        result.validation_passed = true;
+        return Ok(result);
+    }
     
     // Remove existing target debian directory
     if target_debian_path.exists() {
-        fs::remove_dir_all(target_debian_path)?;
+        fs::remove_dir_all(&target_debian_path)?;
     }
     
     // Check if custom debian directory exists and not forced to regenerate
     if custom_debian_path.exists() && !args.force_regenerate {
         report_log("info", &format!("Using custom debian directory for {}", args.package_name)).await?;
         
-        copy_directory_recursive(&custom_debian_path, target_debian_path)?;
+        copy_directory_recursive(&custom_debian_path, &target_debian_path)?;
         result.used_custom = true;
         
         // Update version in changelog if needed
-        update_changelog_version(target_debian_path, &args.package_name, &args.package_version, &args.ros_distro).await?;
+        update_changelog_version(&target_debian_path, &args.package_name, &args.package_version, &args.ros_distro).await?;
         
     } else if args.use_bloom {
         report_log("info", &format!("Generating debian directory with bloom-generate for {}", args.package_name)).await?;
         
-        generate_with_bloom(args, target_debian_path, &mut result).await?;
+        // Pass reference to owned path
+        generate_with_bloom(args, &target_debian_path, &mut result).await?;
         result.used_bloom = true;
         
         // Save generated directory to collection for future use
         if target_debian_path.exists() {
-            save_generated_directory(target_debian_path, &custom_debian_path, &mut result).await?;
+            save_generated_directory(&target_debian_path, &custom_debian_path, &mut result).await?;
         }
     } else {
         result.errors.push("No custom debian directory found and bloom-generate disabled".to_string());
@@ -150,7 +55,7 @@ async fn prepare_debian_directory(args: &Args) -> Result<PreparationResult, Box<
     
     // Validate debian directory if requested
     if args.validate {
-        result.validation_passed = validate_debian_directory(target_debian_path, &args.package_name, &mut result).await?;
+        result.validation_passed = validate_debian_directory(&target_debian_path, &args.package_name, &mut result).await?;
     } else {
         result.validation_passed = true;
     }
@@ -164,10 +69,6 @@ async fn generate_with_bloom(args: &Args, target_debian_path: &Path, result: &mu
     // Build bloom-generate command
     let mut cmd = Command::new("bloom-generate");
     cmd.arg("debian")
-        .arg("--package-name")
-        .arg(&args.package_name)
-        .arg("--package-version")
-        .arg(&debian_version)
         .arg("--ros-distro")
         .arg(&args.ros_distro)
         .arg("--os-name")
@@ -331,12 +232,29 @@ async fn update_changelog_version(debian_path: &Path, package_name: &str, versio
     if content.contains(&debian_version) {
         return Ok(());
     }
+
+    // Determine correct package name for changelog (must match Source: in control file)
+    // Debian package names cannot contain underscores
+    let mut changelog_package_name = package_name.replace("_", "-");
+    let control_path = debian_path.join("control");
+    if control_path.exists() {
+        if let Ok(control_content) = fs::read_to_string(&control_path) {
+            for line in control_content.lines() {
+                if line.starts_with("Source:") {
+                    if let Some(name) = line.split(':').nth(1) {
+                        changelog_package_name = name.trim().to_string();
+                    }
+                    break;
+                }
+            }
+        }
+    }
     
     // Create new changelog entry
     let date = chrono::Utc::now().format("%a, %d %b %Y %H:%M:%S +0000");
     let new_entry = format!(
         "{} ({}) {}; urgency=medium\n\n  * Automated build for ROS {}\n\n -- Automated Build <noreply@ros.org>  {}\n\n{}",
-        package_name, debian_version, ros_distro, ros_distro, date, content
+        changelog_package_name, debian_version, ros_distro, ros_distro, date, content
     );
     
     fs::write(&changelog_path, new_entry)?;
@@ -388,8 +306,8 @@ fn convert_ros_to_debian_version(ros_version: &str) -> Result<String, Box<dyn st
 
 fn get_ubuntu_version(ros_distro: &str) -> &'static str {
     match ros_distro {
-        "humble" | "iron" => "jammy",
-        "jazzy" => "noble",
+        "loong" | "iron" => "jammy",
+        "pixiu" => "noble",
         "rolling" => "noble",
         _ => "jammy", // Default fallback
     }

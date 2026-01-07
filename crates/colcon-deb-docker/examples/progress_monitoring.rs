@@ -15,7 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let docker = service.client();
 
     // Check architecture compatibility
-    let image = "ros:humble-ros-base";
+    let image = "ros:loong-ros-base";
     println!("Checking architecture compatibility for {image}");
 
     let compatibility = check_architecture_compatibility(docker, image).await?;
@@ -44,7 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             container_path: "/workspace".to_string(),
             read_only: false,
         })
-        .with_env("ROS_DISTRO".to_string(), "humble".to_string());
+        .with_env("ROS_DISTRO".to_string(), "loong".to_string());
 
     println!("\nStarting container...");
     let container_id = service.run_container(&spec).await?;
